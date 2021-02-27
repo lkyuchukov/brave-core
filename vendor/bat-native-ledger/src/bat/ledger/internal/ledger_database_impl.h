@@ -37,9 +37,13 @@ class LedgerDatabaseImpl : public LedgerDatabase {
       int32_t compatible_version,
       mojom::DBCommandResponse* command_response);
 
-  mojom::DBCommandResponse::Status Execute(mojom::DBCommand* command);
+  mojom::DBCommandResponse::Status Execute(
+      mojom::DBCommand* command,
+      mojom::DBCommandResponse* command_response);
 
-  mojom::DBCommandResponse::Status Run(mojom::DBCommand* command);
+  mojom::DBCommandResponse::Status Run(
+      mojom::DBCommand* command,
+      mojom::DBCommandResponse* command_response);
 
   mojom::DBCommandResponse::Status Read(
       mojom::DBCommand* command,

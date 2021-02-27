@@ -5,6 +5,7 @@
 
 #include "bat/ledger/internal/ledger_database_impl.h"
 
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -58,41 +59,68 @@ mojom::DBRecordPtr CreateRecord(
     sql::Statement* statement,
     const std::vector<mojom::DBCommand::RecordBindingType>& bindings) {
   auto record = mojom::DBRecord::New();
-  int column = 0;
+  if (!statement)
+    return record;
 
-  if (!statement) {
+  // NOTE: The |record_bindings| member of DBCommand is deprecated.
+  if (bindings.size() > 0) {
+    int column = 0;
+    for (const auto& binding : bindings) {
+      auto value = mojom::DBValue::New();
+      switch (binding) {
+        case mojom::DBCommand::RecordBindingType::STRING_TYPE: {
+          value->set_string_value(statement->ColumnString(column));
+          break;
+        }
+        case mojom::DBCommand::RecordBindingType::INT_TYPE: {
+          value->set_int_value(statement->ColumnInt(column));
+          break;
+        }
+        case mojom::DBCommand::RecordBindingType::INT64_TYPE: {
+          value->set_int64_value(statement->ColumnInt64(column));
+          break;
+        }
+        case mojom::DBCommand::RecordBindingType::DOUBLE_TYPE: {
+          value->set_double_value(statement->ColumnDouble(column));
+          break;
+        }
+        case mojom::DBCommand::RecordBindingType::BOOL_TYPE: {
+          value->set_bool_value(statement->ColumnBool(column));
+          break;
+        }
+        default: {
+          NOTREACHED();
+        }
+      }
+      record->fields.push_back(std::move(value));
+      column++;
+    }
     return record;
   }
 
-  for (const auto& binding : bindings) {
+  for (int column = 0; column < statement->ColumnCount(); ++column) {
     auto value = mojom::DBValue::New();
-    switch (binding) {
-      case mojom::DBCommand::RecordBindingType::STRING_TYPE: {
-        value->set_string_value(statement->ColumnString(column));
-        break;
-      }
-      case mojom::DBCommand::RecordBindingType::INT_TYPE: {
-        value->set_int_value(statement->ColumnInt(column));
-        break;
-      }
-      case mojom::DBCommand::RecordBindingType::INT64_TYPE: {
+    switch (statement->GetColumnType(column)) {
+      case sql::ColumnType::kInteger:
         value->set_int64_value(statement->ColumnInt64(column));
         break;
-      }
-      case mojom::DBCommand::RecordBindingType::DOUBLE_TYPE: {
+      case sql::ColumnType::kFloat:
         value->set_double_value(statement->ColumnDouble(column));
         break;
-      }
-      case mojom::DBCommand::RecordBindingType::BOOL_TYPE: {
-        value->set_bool_value(statement->ColumnBool(column));
+      case sql::ColumnType::kText:
+        value->set_string_value(statement->ColumnString(column));
+        break;
+      case sql::ColumnType::kBlob: {
+        std::string blob_string;
+        statement->ColumnBlobAsString(column, &blob_string);
+        value->set_string_value(blob_string);
         break;
       }
-      default: {
-        NOTREACHED();
-      }
+      case sql::ColumnType::kNull:
+        value->set_null_value(0);
+        break;
     }
     record->fields.push_back(std::move(value));
-    column++;
   }
 
   return record;
@@ -156,11 +184,11 @@ void LedgerDatabaseImpl::RunTransaction(
         break;
       }
       case mojom::DBCommand::Type::EXECUTE: {
-        status = Execute(command.get());
+        status = Execute(command.get(), command_response);
         break;
       }
       case mojom::DBCommand::Type::RUN: {
-        status = Run(command.get());
+        status = Run(command.get(), command_response);
         break;
       }
       case mojom::DBCommand::Type::MIGRATE: {
@@ -245,13 +273,13 @@ mojom::DBCommandResponse::Status LedgerDatabaseImpl::Initialize(
 }
 
 mojom::DBCommandResponse::Status LedgerDatabaseImpl::Execute(
-    mojom::DBCommand* command) {
+    mojom::DBCommand* command,
+    mojom::DBCommandResponse* command_response) {
+  DCHECK(command);
+  DCHECK(command_response);
+
   if (!initialized_) {
     return mojom::DBCommandResponse::Status::INITIALIZATION_ERROR;
-  }
-
-  if (!command) {
-    return mojom::DBCommandResponse::Status::RESPONSE_ERROR;
   }
 
   bool result = db_.Execute(command->command.c_str());
@@ -261,17 +289,23 @@ mojom::DBCommandResponse::Status LedgerDatabaseImpl::Execute(
     return mojom::DBCommandResponse::Status::COMMAND_ERROR;
   }
 
+  auto db_value = mojom::DBValue::New();
+  db_value->set_int_value(db_.GetLastChangeCount());
+  auto db_result = mojom::DBCommandResult::New();
+  db_result->set_value(std::move(db_value));
+  command_response->result = std::move(db_result);
+
   return mojom::DBCommandResponse::Status::RESPONSE_OK;
 }
 
 mojom::DBCommandResponse::Status LedgerDatabaseImpl::Run(
-    mojom::DBCommand* command) {
+    mojom::DBCommand* command,
+    mojom::DBCommandResponse* command_response) {
+  DCHECK(command);
+  DCHECK(command_response);
+
   if (!initialized_) {
     return mojom::DBCommandResponse::Status::INITIALIZATION_ERROR;
-  }
-
-  if (!command) {
-    return mojom::DBCommandResponse::Status::RESPONSE_ERROR;
   }
 
   sql::Statement statement(db_.GetUniqueStatement(command->command.c_str()));
@@ -285,6 +319,12 @@ mojom::DBCommandResponse::Status LedgerDatabaseImpl::Run(
                              << db_.GetErrorCode() << ")");
     return mojom::DBCommandResponse::Status::COMMAND_ERROR;
   }
+
+  auto db_value = mojom::DBValue::New();
+  db_value->set_int_value(db_.GetLastChangeCount());
+  auto db_result = mojom::DBCommandResult::New();
+  db_result->set_value(std::move(db_value));
+  command_response->result = std::move(db_result);
 
   return mojom::DBCommandResponse::Status::RESPONSE_OK;
 }
