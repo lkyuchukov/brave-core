@@ -8,35 +8,28 @@
 #include "base/strings/string_split.h"
 #include "base/strings/string_util.h"
 #include "base/strings/stringprintf.h"
-#include "base/test/task_environment.h"
-#include "bat/ledger/internal/core/test_ledger_client.h"
-#include "bat/ledger/internal/database/database_util.h"
-#include "bat/ledger/internal/ledger_impl.h"
+#include "base/test/bind.h"
+#include "bat/ledger/internal/core/bat_ledger_test.h"
+#include "bat/ledger/internal/upgrades/upgrade_manager.h"
 #include "bat/ledger/option_keys.h"
 #include "build/build_config.h"
 #include "sql/statement.h"
 #include "testing/gtest/include/gtest/gtest.h"
+#include "third_party/re2/src/re2/re2.h"
 
 // npm run test -- brave_unit_tests --filter=LedgerDatabaseMigrationTest.*
 
 namespace ledger {
-using database::DatabaseMigration;
 
-class LedgerDatabaseMigrationTest : public testing::Test {
+class LedgerDatabaseMigrationTest : public BATLedgerTest {
  public:
   LedgerDatabaseMigrationTest() { ledger::is_testing = true; }
-
-  ~LedgerDatabaseMigrationTest() override {
-    DatabaseMigration::SetTargetVersionForTesting(0);
-    ledger::is_testing = false;
-  }
+  ~LedgerDatabaseMigrationTest() override { ledger::is_testing = false; }
 
  protected:
   sql::Database* GetDB() {
-    return client_.database()->GetInternalDatabaseForTesting();
+    return GetTestLedgerClient()->database()->GetInternalDatabaseForTesting();
   }
-
-  LedgerImpl* ledger() { return &ledger_; }
 
   std::string GetExpectedSchema() {
     base::FilePath path =
@@ -85,15 +78,18 @@ class LedgerDatabaseMigrationTest : public testing::Test {
     ASSERT_TRUE(GetDB()->Execute(init_script.c_str()));
   }
 
-  void InitializeLedger() {
+  void RunUpgrades(int version = 0) {
     base::RunLoop run_loop;
-    mojom::Result result;
-    ledger()->database()->Initialize(false, [&result, &run_loop](auto r) {
-      result = r;
-      run_loop.Quit();
-    });
+    bool result;
+
+    context().Get<UpgradeManager>().UpgradeToVersionForTesting(version).Then(
+        base::BindLambdaForTesting([&result, &run_loop](bool r) {
+          result = r;
+          run_loop.Quit();
+        }));
+
     run_loop.Run();
-    ASSERT_EQ(result, mojom::Result::LEDGER_OK);
+    ASSERT_TRUE(result);
   }
 
   int CountTableRows(const std::string& table) {
@@ -102,25 +98,20 @@ class LedgerDatabaseMigrationTest : public testing::Test {
     sql::Statement s(GetDB()->GetUniqueStatement(sql.c_str()));
     return s.Step() ? static_cast<int>(s.ColumnInt64(0)) : -1;
   }
-
-  base::test::TaskEnvironment task_environment_;
-  TestLedgerClient client_;
-  LedgerImpl ledger_{&client_};
 };
 
 TEST_F(LedgerDatabaseMigrationTest, SchemaCheck) {
-  DatabaseMigration::SetTargetVersionForTesting(
-      ledger::database::GetCurrentVersion());
-  InitializeLedger();
+  RunUpgrades();
   std::string expected_schema = GetExpectedSchema();
   EXPECT_FALSE(expected_schema.empty());
-  EXPECT_EQ(GetDB()->GetSchema(), expected_schema);
+  std::string actual_schema = GetDB()->GetSchema();
+  re2::RE2::GlobalReplace(&actual_schema, "\\s\\s+", " ");
+  EXPECT_EQ(actual_schema, expected_schema);
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_4_ActivityInfo) {
-  DatabaseMigration::SetTargetVersionForTesting(4);
   InitializeDatabaseAtVersion(3);
-  InitializeLedger();
+  RunUpgrades(4);
 
   sql::Statement info_sql(GetDB()->GetUniqueStatement(R"sql(
       SELECT publisher_id, visits FROM activity_info
@@ -141,9 +132,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_4_ActivityInfo) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_5_ActivityInfo) {
-  DatabaseMigration::SetTargetVersionForTesting(5);
   InitializeDatabaseAtVersion(4);
-  InitializeLedger();
+  RunUpgrades(5);
 
   sql::Statement info_sql(GetDB()->GetUniqueStatement(R"sql(
       SELECT publisher_id, visits FROM activity_info
@@ -167,9 +157,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_5_ActivityInfo) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_6_ActivityInfo) {
-  DatabaseMigration::SetTargetVersionForTesting(6);
   InitializeDatabaseAtVersion(5);
-  InitializeLedger();
+  RunUpgrades(6);
 
   sql::Statement info_sql(GetDB()->GetUniqueStatement(R"sql(
       SELECT publisher_id, visits, duration, score, percent, weight,
@@ -217,9 +206,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_6_ActivityInfo) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_8_PendingContribution) {
-  DatabaseMigration::SetTargetVersionForTesting(8);
   InitializeDatabaseAtVersion(7);
-  InitializeLedger();
+  RunUpgrades(8);
 
   EXPECT_EQ(CountTableRows("pending_contribution"), 1);
 
@@ -249,9 +237,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_8_PendingContribution) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_11_ContributionInfo) {
-  DatabaseMigration::SetTargetVersionForTesting(11);
   InitializeDatabaseAtVersion(10);
-  InitializeLedger();
+  RunUpgrades(11);
 
   EXPECT_EQ(CountTableRows("contribution_info"), 5);
   EXPECT_EQ(CountTableRows("contribution_info_publishers"), 4);
@@ -293,9 +280,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_11_ContributionInfo) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_12_ContributionInfo) {
-  DatabaseMigration::SetTargetVersionForTesting(12);
   InitializeDatabaseAtVersion(11);
-  InitializeLedger();
+  RunUpgrades(12);
 
   EXPECT_EQ(CountTableRows("pending_contribution"), 4);
 
@@ -325,16 +311,14 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_12_ContributionInfo) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_13_Promotion) {
-  DatabaseMigration::SetTargetVersionForTesting(13);
   InitializeDatabaseAtVersion(12);
-  InitializeLedger();
+  RunUpgrades(13);
   EXPECT_EQ(CountTableRows("promotion"), 1);
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_14_UnblindedToken) {
-  DatabaseMigration::SetTargetVersionForTesting(14);
   InitializeDatabaseAtVersion(13);
-  InitializeLedger();
+  RunUpgrades(14);
 
   EXPECT_EQ(CountTableRows("unblinded_tokens"), 5);
 
@@ -367,9 +351,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_14_UnblindedToken) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_16_ContributionInfo) {
-  DatabaseMigration::SetTargetVersionForTesting(16);
   InitializeDatabaseAtVersion(15);
-  InitializeLedger();
+  RunUpgrades(16);
 
   EXPECT_EQ(CountTableRows("contribution_info"), 5);
 
@@ -390,9 +373,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_16_ContributionInfo) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_18_Promotion) {
-  DatabaseMigration::SetTargetVersionForTesting(18);
   InitializeDatabaseAtVersion(17);
-  InitializeLedger();
+  RunUpgrades(18);
 
   EXPECT_EQ(CountTableRows("promotion"), 2);
 
@@ -419,9 +401,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_18_Promotion) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_18_CredsBatch) {
-  DatabaseMigration::SetTargetVersionForTesting(18);
   InitializeDatabaseAtVersion(17);
-  InitializeLedger();
+  RunUpgrades(18);
 
   EXPECT_EQ(CountTableRows("creds_batch"), 2);
 
@@ -471,9 +452,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_18_CredsBatch) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_18_UnblindedToken) {
-  DatabaseMigration::SetTargetVersionForTesting(18);
   InitializeDatabaseAtVersion(17);
-  InitializeLedger();
+  RunUpgrades(18);
 
   EXPECT_EQ(CountTableRows("unblinded_tokens"), 80);
 
@@ -497,9 +477,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_18_UnblindedToken) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_21_ContributionInfoPublishers) {
-  DatabaseMigration::SetTargetVersionForTesting(21);
   InitializeDatabaseAtVersion(20);
-  InitializeLedger();
+  RunUpgrades(21);
 
   EXPECT_EQ(CountTableRows("contribution_info_publishers"), 4);
 
@@ -539,9 +518,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_21_ContributionInfoPublishers) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_23_ContributionQueue) {
-  DatabaseMigration::SetTargetVersionForTesting(23);
   InitializeDatabaseAtVersion(22);
-  InitializeLedger();
+  RunUpgrades(23);
 
   EXPECT_EQ(CountTableRows("contribution_queue"), 1);
 
@@ -584,9 +562,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_23_ContributionQueue) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_24_ContributionQueue) {
-  DatabaseMigration::SetTargetVersionForTesting(24);
   InitializeDatabaseAtVersion(23);
-  InitializeLedger();
+  RunUpgrades(24);
 
   EXPECT_EQ(CountTableRows("contribution_queue"), 1);
 
@@ -614,9 +591,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_24_ContributionQueue) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_26_UnblindedTokens) {
-  DatabaseMigration::SetTargetVersionForTesting(26);
   InitializeDatabaseAtVersion(25);
-  InitializeLedger();
+  RunUpgrades(26);
 
   EXPECT_EQ(CountTableRows("unblinded_tokens"), 10);
 
@@ -693,9 +669,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_26_UnblindedTokens) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_27_UnblindedTokens) {
-  DatabaseMigration::SetTargetVersionForTesting(27);
   InitializeDatabaseAtVersion(26);
-  InitializeLedger();
+  RunUpgrades(27);
 
   EXPECT_EQ(CountTableRows("unblinded_tokens"), 1);
 
@@ -727,9 +702,8 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_27_UnblindedTokens) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_28_ServerPublisherInfoCleared) {
-  DatabaseMigration::SetTargetVersionForTesting(28);
   InitializeDatabaseAtVersion(27);
-  InitializeLedger();
+  RunUpgrades(28);
 
   EXPECT_EQ(CountTableRows("server_publisher_info"), 1);
   EXPECT_EQ(CountTableRows("server_publisher_banner"), 1);
@@ -750,47 +724,43 @@ TEST_F(LedgerDatabaseMigrationTest, Migration_28_ServerPublisherInfoCleared) {
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_30_NotBitflyerRegion) {
-  DatabaseMigration::SetTargetVersionForTesting(30);
   InitializeDatabaseAtVersion(29);
-  InitializeLedger();
+  RunUpgrades(30);
   EXPECT_EQ(CountTableRows("unblinded_tokens"), 1);
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_30_BitflyerRegion) {
-  DatabaseMigration::SetTargetVersionForTesting(30);
   InitializeDatabaseAtVersion(29);
-  client_.SetOptionForTesting(option::kIsBitflyerRegion, base::Value(true));
-  InitializeLedger();
+  GetTestLedgerClient()->SetOptionForTesting(option::kIsBitflyerRegion,
+                                             base::Value(true));
+  RunUpgrades(30);
   EXPECT_EQ(CountTableRows("unblinded_tokens"), 0);
   EXPECT_EQ(CountTableRows("unblinded_tokens_bap"), 1);
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_31) {
-  DatabaseMigration::SetTargetVersionForTesting(31);
   InitializeDatabaseAtVersion(30);
-  InitializeLedger();
+  RunUpgrades(31);
   EXPECT_TRUE(GetDB()->DoesColumnExist("pending_contribution", "processor"));
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_32_NotBitflyerRegion) {
-  DatabaseMigration::SetTargetVersionForTesting(32);
   InitializeDatabaseAtVersion(30);
-  InitializeLedger();
+  RunUpgrades(32);
   EXPECT_EQ(CountTableRows("balance_report_info"), 1);
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_32_BitflyerRegion) {
-  DatabaseMigration::SetTargetVersionForTesting(32);
   InitializeDatabaseAtVersion(30);
-  client_.SetOptionForTesting(option::kIsBitflyerRegion, base::Value(true));
-  InitializeLedger();
+  GetTestLedgerClient()->SetOptionForTesting(option::kIsBitflyerRegion,
+                                             base::Value(true));
+  RunUpgrades(32);
   EXPECT_EQ(CountTableRows("balance_report_info"), 0);
 }
 
 TEST_F(LedgerDatabaseMigrationTest, Migration_33) {
-  DatabaseMigration::SetTargetVersionForTesting(33);
   InitializeDatabaseAtVersion(32);
-  InitializeLedger();
+  RunUpgrades(33);
   EXPECT_FALSE(GetDB()->DoesColumnExist("pending_contribution", "processor"));
 }
 

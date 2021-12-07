@@ -141,6 +141,7 @@ source_set("bat_native_ledger_tests") {
     "//brave/vendor/bat-native-rapidjson",
     "//net:net",
     "//sql:sql",
+    "//third_party/re2",
     "//url:url",
   ]
 
