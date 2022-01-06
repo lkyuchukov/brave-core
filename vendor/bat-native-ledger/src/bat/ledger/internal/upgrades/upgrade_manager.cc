@@ -41,6 +41,7 @@
 #include "bat/ledger/internal/upgrades/upgrade_33.h"
 #include "bat/ledger/internal/upgrades/upgrade_34.h"
 #include "bat/ledger/internal/upgrades/upgrade_35.h"
+#include "bat/ledger/internal/upgrades/upgrade_36.h"
 #include "bat/ledger/internal/upgrades/upgrade_4.h"
 #include "bat/ledger/internal/upgrades/upgrade_5.h"
 #include "bat/ledger/internal/upgrades/upgrade_6.h"
@@ -182,7 +183,8 @@ class UpgradeJob : public BATLedgerJob<bool> {
                               Upgrade32,
                               Upgrade33,
                               Upgrade34,
-                              Upgrade35>();
+                              Upgrade35,
+                              Upgrade36>();
 };
 
 }  // namespace
