@@ -54,10 +54,17 @@ bool HasObservationWindowForAdEventExpired(const int observation_window,
   return true;
 }
 
-bool ShouldConvertAdEvent(const AdEventInfo& ad_event) {
+bool ShouldConvertAdEvent(
+    const AdEventInfo& ad_event,
+    const VerifiableConversionInfo& verifiable_conversion) {
   if (ad_event.type == AdType::kInlineContentAd) {
     if (ad_event.confirmation_type == ConfirmationType::kViewed) {
       // Do not convert views for inline content ads
+      return false;
+    }
+
+    if (!verifiable_conversion.id.empty()) {
+      // Do not convert verifiable conversions for inline content ads
       return false;
     }
 
@@ -169,10 +176,6 @@ AdEventList FilterAdEventsForConversion(const AdEventList& ad_events,
       std::back_inserter(filtered_ad_events),
       [&conversion](const AdEventInfo& ad_event) {
         if (ad_event.creative_set_id != conversion.creative_set_id) {
-          return false;
-        }
-
-        if (!ShouldConvertAdEvent(ad_event)) {
           return false;
         }
 
@@ -307,13 +310,17 @@ void Conversions::CheckRedirectChain(
             continue;
           }
 
-          creative_set_ids.insert(ad_event.creative_set_id);
-
           VerifiableConversionInfo verifiable_conversion;
           verifiable_conversion.id = ExtractConversionIdFromText(
               html, redirect_chain, conversion.url_pattern,
               conversion_id_patterns);
           verifiable_conversion.public_key = conversion.advertiser_public_key;
+
+          if (!ShouldConvertAdEvent(ad_event, verifiable_conversion)) {
+            continue;
+          }
+
+          creative_set_ids.insert(ad_event.creative_set_id);
 
           Convert(ad_event, verifiable_conversion);
 
