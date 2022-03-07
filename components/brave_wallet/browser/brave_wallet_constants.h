@@ -63,6 +63,7 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
     {"braveWalletTopTabApps", IDS_BRAVE_WALLET_TOP_TAB_APPS},
     {"braveWalletTopNavNFTS", IDS_BRAVE_WALLET_TOP_NAV_N_F_T_S},
     {"braveWalletTopNavAccounts", IDS_BRAVE_WALLET_TOP_NAV_ACCOUNTS},
+    {"braveWalletTopNavMarket", IDS_BRAVE_WALLET_TOP_NAV_MARKET},
     {"braveWalletChartLive", IDS_BRAVE_WALLET_CHART_LIVE},
     {"braveWalletChartOneDay", IDS_BRAVE_WALLET_CHART_ONE_DAY},
     {"braveWalletChartOneWeek", IDS_BRAVE_WALLET_CHART_ONE_WEEK},
@@ -602,7 +603,23 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
     {"braveWalletNetworkFilterAll", IDS_BRAVE_WALLET_NETWORK_FILTER_ALL},
     {"braveWalletEditGasLimitError", IDS_BRAVE_WALLET_EDIT_GAS_LIMIT_ERROR},
     {"braveWalletNetworkFilterSecondary",
-     IDS_BRAVE_WALLET_NETWORK_FILTER_SECONDARY}};
+     IDS_BRAVE_WALLET_NETWORK_FILTER_SECONDARY},
+    {"braveWalletMarketDataAllAssetsFilter",
+     IDS_BRAVE_WALLET_MARKET_DATA_ALL_ASSETS_FILTER},
+    {"braveWalletMarketDataTradableFilter",
+     IDS_BRAVE_WALLET_MARKET_DATA_TRADABLE_FILTER},
+    {"braveWalletMarketDataAssetsColumn",
+     IDS_BRAVE_WALLET_MARKET_DATA_ASSETS_COLUMN},
+    {"braveWalletMarketDataPriceColumn",
+     IDS_BRAVE_WALLET_MARKET_DATA_PRICE_COLUMN},
+    {"braveWalletMarketData24HrColumn",
+     IDS_BRAVE_WALLET_MARKET_DATA_24Hr_COLUMN},
+    {"braveWalletMarketDataMarketCapColumn",
+     IDS_BRAVE_WALLET_MARKET_DATA_MARKETCAP_COLUMN},
+    {"braveWalletMarketDataVolumeColumn",
+     IDS_BRAVE_WALLET_MARKET_DATA_VOLUME_COLUMN},
+    {"braveWalletMarketDataNoAssetsFound",
+     IDS_BRAVE_WALLET_MARKET_DATA_NO_ASSETS_FOUND}};
 
 // Swap constants
 const char kRopstenSwapBaseAPIURL[] = "https://ropsten.api.0x.org/";
