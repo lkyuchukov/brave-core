@@ -15,7 +15,8 @@ import {
   TorStatusContainer,
   TorStatusGrid,
   TorStatusIndicator,
-  TorStatusText
+  TorStatusText,
+  Search
 } from '../../components/private'
 
 import locale from './fakeLocale'
@@ -56,6 +57,7 @@ export default class TorTab extends React.PureComponent<{}, {}> {
             <HeaderGrid isStandalonePrivatePage={true}>
               <PrivateImage src={privateWindowImg} isStandalonePrivatePage={true} />
               <Title isStandalonePrivatePage={true}>{locale.headerTorTitle}</Title>
+              <Search />
             </HeaderGrid>
           </HeaderBox>
           <PrivacyEyeImage src={privacyEyeImg} />

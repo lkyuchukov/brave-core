@@ -11,6 +11,7 @@ import {
   Footer
 } from './modal'
 import { Page, PageWrapper } from './page'
+import Search from './search'
 import {
   Grid,
   Grid2Columns,
@@ -81,5 +82,6 @@ export {
   TorStatusContainer,
   TorStatusGrid,
   TorStatusIndicator,
-  TorStatusText
+  TorStatusText,
+  Search
 }

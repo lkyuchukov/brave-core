@@ -10,6 +10,7 @@
 #include <string>
 
 #include "brave/components/brave_new_tab_ui/brave_new_tab_page.mojom.h"
+#include "brave/components/brave_new_tab_ui/brave_new_tab_searchbox.mojom.h"
 #include "brave/components/brave_today/common/brave_news.mojom.h"
 #include "content/public/browser/web_ui_controller.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
@@ -22,9 +23,12 @@ class BraveNewsController;
 }  // namespace brave_news
 
 class BraveNewTabPageHandler;
+class BraveNewTabSearchHandler;
 
-class BraveNewTabUI : public ui::MojoWebUIController,
-                      public brave_new_tab_page::mojom::PageHandlerFactory {
+class BraveNewTabUI
+    : public ui::MojoWebUIController,
+      public brave_new_tab_page::mojom::PageHandlerFactory,
+      public brave_new_tab_searchbox::mojom::PageHandlerFactory {
  public:
   BraveNewTabUI(content::WebUI* web_ui, const std::string& name);
   ~BraveNewTabUI() override;
@@ -40,16 +44,28 @@ class BraveNewTabUI : public ui::MojoWebUIController,
       mojo::PendingReceiver<brave_new_tab_page::mojom::PageHandlerFactory>
           pending_receiver);
 
+  void BindInterface(
+      mojo::PendingReceiver<brave_new_tab_searchbox::mojom::PageHandlerFactory>
+          pending_receiver);
+
  private:
   // new_tab_page::mojom::PageHandlerFactory:
   void CreatePageHandler(
       mojo::PendingRemote<brave_new_tab_page::mojom::Page> pending_page,
       mojo::PendingReceiver<brave_new_tab_page::mojom::PageHandler>
           pending_page_handler) override;
+  // new_tab_searchbox::mojom::PageHandlerFactory
+  void CreatePageHandler(
+      mojo::PendingReceiver<brave_new_tab_searchbox::mojom::PageHandler>
+          handler) override;
 
   std::unique_ptr<BraveNewTabPageHandler> page_handler_;
+  std::unique_ptr<BraveNewTabSearchHandler> page_search_handler_;
+
   mojo::Receiver<brave_new_tab_page::mojom::PageHandlerFactory>
       page_factory_receiver_;
+  mojo::Receiver<brave_new_tab_searchbox::mojom::PageHandlerFactory>
+      page_search_factory_receiver_;
 
   WEB_UI_CONTROLLER_TYPE_DECL();
 };

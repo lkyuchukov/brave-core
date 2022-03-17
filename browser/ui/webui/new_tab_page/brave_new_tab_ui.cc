@@ -14,6 +14,7 @@
 #include "brave/browser/ui/webui/brave_webui_source.h"
 #include "brave/browser/ui/webui/new_tab_page/brave_new_tab_message_handler.h"
 #include "brave/browser/ui/webui/new_tab_page/brave_new_tab_page_handler.h"
+#include "brave/browser/ui/webui/new_tab_page/brave_new_tab_search_handler.h"
 #include "brave/browser/ui/webui/new_tab_page/top_sites_message_handler.h"
 #include "brave/components/brave_new_tab/resources/grit/brave_new_tab_generated_map.h"
 #include "brave/components/brave_today/browser/brave_news_controller.h"
@@ -34,7 +35,8 @@ BraveNewTabUI::BraveNewTabUI(content::WebUI* web_ui, const std::string& name)
     : ui::MojoWebUIController(
           web_ui,
           true /* Needed for legacy non-mojom message handler */),
-      page_factory_receiver_(this) {
+      page_factory_receiver_(this),
+      page_search_factory_receiver_(this) {
   Profile* profile = Profile::FromWebUI(web_ui);
   web_ui->OverrideTitle(
       brave_l10n::GetLocalizedResourceUTF16String(IDS_NEW_TAB_TITLE));
@@ -99,6 +101,16 @@ void BraveNewTabUI::BindInterface(
   page_factory_receiver_.Bind(std::move(pending_receiver));
 }
 
+void BraveNewTabUI::BindInterface(
+    mojo::PendingReceiver<brave_new_tab_searchbox::mojom::PageHandlerFactory>
+        pending_receiver) {
+  if (page_search_factory_receiver_.is_bound()) {
+    page_search_factory_receiver_.reset();
+  }
+
+  page_search_factory_receiver_.Bind(std::move(pending_receiver));
+}
+
 void BraveNewTabUI::CreatePageHandler(
     mojo::PendingRemote<brave_new_tab_page::mojom::Page> pending_page,
     mojo::PendingReceiver<brave_new_tab_page::mojom::PageHandler>
@@ -108,6 +120,14 @@ void BraveNewTabUI::CreatePageHandler(
   page_handler_ = std::make_unique<BraveNewTabPageHandler>(
       std::move(pending_page_handler), std::move(pending_page), profile,
       web_ui()->GetWebContents());
+}
+
+void BraveNewTabUI::CreatePageHandler(
+    mojo::PendingReceiver<brave_new_tab_searchbox::mojom::PageHandler>
+        handler) {
+  Profile* profile = Profile::FromWebUI(web_ui());
+  page_search_handler_ = std::make_unique<BraveNewTabSearchHandler>(
+      std::move(handler), profile, web_ui()->GetWebContents());
 }
 
 WEB_UI_CONTROLLER_TYPE_IMPL(BraveNewTabUI)

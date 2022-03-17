@@ -20,6 +20,9 @@ pack_web_resources("generated_resources") {
 }
 
 mojom("mojom") {
-  sources = [ "brave_new_tab_page.mojom" ]
+  sources = [
+    "brave_new_tab_page.mojom",
+    "brave_new_tab_searchbox.mojom",
+  ]
   public_deps = [ "//url/mojom:url_mojom_gurl" ]
 }

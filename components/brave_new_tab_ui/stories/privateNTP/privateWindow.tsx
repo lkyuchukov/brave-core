@@ -18,7 +18,8 @@ import {
   PrivacyEyeImage,
   PrivateImage,
   DuckDuckGoImage,
-  Link
+  Link,
+  Search
 } from '../../components/private'
 
 // Components
@@ -55,6 +56,7 @@ export default class PrivateTab extends React.PureComponent<{}, {}> {
             <HeaderGrid isStandalonePrivatePage={true}>
               <PrivateImage src={privateWindowImg} isStandalonePrivatePage={true} />
               <Title isStandalonePrivatePage={true}>{locale.headerTitle}</Title>
+              <Search />
             </HeaderGrid>
           </HeaderBox>
           <PrivacyEyeImage src={privacyEyeImg} />
