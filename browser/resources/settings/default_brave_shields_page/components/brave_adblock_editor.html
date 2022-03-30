@@ -1,0 +1,108 @@
+<style include="cr-shared-style settings-shared iron-flex">
+  :root {
+    --brave-primary-hover: #ff977d;
+    --cr-input-background-color: var(--google-grey-100);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --cr-input-background-color: rgba(0, 0, 0, .3);
+    }
+  }
+
+  .editor-box {
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    overflow: hidden;
+    width: 100%;
+    height: 300px;
+    margin-bottom: 10px;
+    background-color: var(--cr-input-background-color);
+    padding: 5px 5px 5px 0;
+    border-radius: 4px;
+    border: 1px solid transparent;
+  }
+
+  .textbox {
+    -webkit-appearance: none;
+    display: inline-block;
+    box-sizing: border-box;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    word-break: break-all;
+    white-space: pre;
+    resize: none;
+    overflow-wrap: normal;
+    overflow-x: auto;
+    width: 100%;
+    height: 100%;
+    padding: 0 5px 0 5px;
+    font-family: monospace;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .textbox::selection {
+    background-color: var(--brave-primary-hover);
+  }
+
+  .linebox {
+    box-sizing: border-box;
+    width: 50px;
+    height: 100%;
+    padding: 0 5px 0 0;
+    word-break: break-all;
+    overflow: hidden;
+    counter-reset: line;
+  }
+
+  .linebox-text {
+    width: 100%;
+    display: block;
+    font-family: monospace;
+    font-size: 13px;
+    color: var(--google-grey-600);
+    text-align: right;
+    line-height: 1.5;
+  }
+
+  .linebox-text.active {
+    color: var(--brave-primary-hover);
+    background-color: var(--google-grey-800);
+  }
+
+  .linebox-text::before {
+    counter-increment: line;
+    content: counter(line);
+    font-size: 1em;
+    user-select: none;
+  }
+</style>
+
+<div>
+  <div class="editor-box">
+    <div id="linebox" class="linebox">
+      <template is="dom-repeat" items="[[lines_]]">
+        <span class$="linebox-text {{getClassForHighlight_(index, activeLineNumber_)}}"></span>
+      </template>
+    </div>
+    <textarea
+      type="text"
+      spellcheck="false"
+      class="textbox"
+      on-input="handleInputChange_"
+      on-scroll="handleOnScroll_"
+      on-keyup="handleOnKeyUp_"
+      on-click="handleOnClick_"
+      on-blur="clearActiveLineNumber_"
+      value="{{value}}">
+    </textarea>
+  </div>
+  <cr-button on-click="handleSave_">
+    $i18n{adblockSaveChangesButtonLabel}
+  </cr-button>
+</div>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grit-part>
+  <message name="IDS_BRAVE_ADBLOCK_CONTENT_FILTERING_LABEL" desc="Label for Content Filtering">
+    Content Filtering
+  </message>
+  <message name="IDS_BRAVE_ADBLOCK_CONTENT_FILTERING_DESC" desc="Long description describing what Content Filtering does">
+    Enable custom filters that block regional and language-specific trackers and annoyances.
+  </message>
+  <message name="IDS_BRAVE_ADBLOCK_ADD_CUSTOM_FILTERS_LISTS_LABEL" desc="Label for custom filters lists section">
+    Add custom filter lists
+  </message>
+  <message name="IDS_BRAVE_ADBLOCK_ADD_CUSTOM_FILTERS_LISTS_DESC" desc="Description for custom filters lists section">
+    Add additional lists created and maintained by your trusted community. Only subscribe to lists from entities you trust. Your browser will periodically check for list updates from the URL you enter, revealing your IP address to their server.
+  </message>
+  <message name="IDS_BRAVE_ADBLOCK_CUSTOM_FILTERS_LABEL" desc="Label for custom filters section">
+    Custom Filters
+  </message>
+  <message name="IDS_BRAVE_ADBLOCK_CUSTOM_FILTERS_DESC" desc="Description for custom filters section">
+    Get technical by adding your own specific filters, one by line, in Adblock Plus filter syntax.
+  </message>
+  <message name="IDS_BRAVE_ADBLOCK_ADD_LISTS_BUTTON_LABEL" desc="Label for button that adds filter lists URL">
+    Add
+  </message>
+  <message name="IDS_BRAVE_ADBLOCK_FILTER_LISTS_TABLE_URL_HEADER" desc="List URL header label for custom filters table">
+    List URL
+  </message>
+  <message name="IDS_BRAVE_ADBLOCK_FILTER_LISTS_TABLE_UPDATED_HEADER" desc="Last updated header label for custom filters table">
+    Last updated
+  </message>
+  <message name="IDS_BRAVE_ADBLOCK_UPDATE_NOW_BUTTON_LABEL" desc="Button label to update the custom filter lists item">
+    Update now
+  </message>
+  <message name="IDS_BRAVE_ADBLOCK_VIEW_SOURCE_BUTTON_LABEL" desc="Button label to view custom filter lists item source">
+    View source
+  </message>
+  <message name="IDS_BRAVE_ADBLOCK_UNSUBSCRIBE_BUTTON_LABEL" desc="Button label to delete custom filter lists item from the table">
+    Unsubscribe
+  </message>
+  <message name="IDS_BRAVE_ADBLOCK_SAVE_BUTTON_LABEL" desc="Button label to save custom filters text">
+    Save changes
+  </message>
+</grit-part>

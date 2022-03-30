@@ -1,0 +1,44 @@
+<style include="cr-shared-style settings-shared iron-flex">
+  :root {
+    --brave-primary-hover: #ff977d;
+  }
+  
+  .box {
+    width: 100%;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  .dropdown-item > i {
+    margin-right: 8px;
+    display: inline-block;
+    line-height: 0;
+  }
+</style>
+
+<div class="box">
+  <cr-icon-button class="icon-more-vert"
+      on-click="handleDropdownClick_"
+      focus-type="menu">
+  </cr-icon-button>
+  <cr-action-menu id="menu" role-description="simple">
+    <button class="dropdown-item" on-click="updateSubscription_">
+      <i><svg width="14" height="16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M13.666 8c0 3.054-1.971 5.784-4.794 6.638a.667.667 0 1 1-.386-1.276c2.265-.685 3.847-2.89 3.847-5.362 0-2.318-1.353-4.2-3.403-4.963l.666 1.331a.667.667 0 1 1-1.193.597L7.07 2.299a.666.666 0 0 1 .298-.895L10.035.071a.666.666 0 1 1 .596 1.192l-1.117.558c2.483.99 4.152 3.368 4.152 6.18Zm-7.035 6.596L3.964 15.93a.665.665 0 1 1-.596-1.193l1.116-.557C2.002 13.19.333 10.813.333 8c0-3.053 1.971-5.783 4.793-6.638a.667.667 0 0 1 .388 1.276C3.248 3.325 1.666 5.53 1.666 8c0 2.32 1.354 4.204 3.404 4.965l-.667-1.333a.667.667 0 0 1 1.193-.597l1.333 2.667c.165.33.031.73-.298.894Z" fill="currentColor"/></svg></i>
+      <span>$i18n{adblockUpdateNowButtonLabel}</span>
+    </button>
+    <button class="dropdown-item" on-click="viewSubscription_">
+      <i>
+      <svg width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="m15.805 8.471-3.334 3.335a.665.665 0 0 1-.943 0 .666.666 0 0 1 0-.943L14.391 8l-2.863-2.86a.667.667 0 1 1 .943-.943l3.334 3.332a.665.665 0 0 1 0 .943Zm-9.166 6.387a.666.666 0 0 1-1.278-.383l4-13.333a.667.667 0 0 1 1.277.383l-4 13.333Zm-2.167-3.053a.664.664 0 0 1-.943 0L.195 8.472a.666.666 0 0 1 0-.942L3.53 4.195a.666.666 0 1 1 .943.943L1.609 8.001l2.863 2.86c.26.26.26.683 0 .944Z" fill="currentColor"/></svg>
+      </i>
+      <span>$i18n{adblockViewSourceButtonLabel}</span>
+    </button>
+    <button class="dropdown-item" on-click="deleteSubscription_">
+      <i><svg width="14" height="16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M13 4h-.727L11.07 14.745A1.429 1.429 0 0 1 9.666 16H4.333c-.71 0-1.325-.552-1.403-1.257L1.746 4H1a.667.667 0 0 1 0-1.333h3.333V2c0-1.103.897-2 2-2h1.333c1.103 0 2 .897 2 2v.667H13A.667.667 0 0 1 13 4ZM8.333 2c0-.367-.3-.667-.667-.667H6.333c-.367 0-.667.3-.667.667v.667h2.667V2ZM3.088 4l1.168 10.598c.003.026.05.069.077.069h5.333c.027 0 .076-.044.079-.07L10.932 4H3.088Z" fill="currentColor"/></svg></i>
+      <span>$i18n{adblockUnsubscribeButtonLabel}</span>
+    </button>
+  </cr-action-menu>
+</div>
