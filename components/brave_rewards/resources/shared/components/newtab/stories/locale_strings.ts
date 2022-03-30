@@ -5,6 +5,7 @@
 export const localeStrings = {
   rewardsAdGrantAmount: '$1 Rewards: $2',
   rewardsAdGrantTitle: 'Your $1 Ad Rewards are here!',
+  rewardsBalanceUnavailable: 'N/A',
   rewardsBraveRewards: 'Brave Rewards',
   rewardsClaimRewards: 'Claim Rewards',
   rewardsClaimTokens: 'Claim Tokens',

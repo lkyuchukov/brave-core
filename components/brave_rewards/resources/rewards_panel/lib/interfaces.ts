@@ -55,7 +55,7 @@ export interface Options {
 export interface HostState {
   loading: boolean
   rewardsEnabled: boolean
-  balance: number
+  balance: number | null
   settings: Settings
   options: Options
   grantCaptchaInfo: GrantCaptchaInfo | null

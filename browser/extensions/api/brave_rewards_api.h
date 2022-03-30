@@ -360,19 +360,18 @@ class BraveRewardsIsAutoContributeSupportedFunction : public ExtensionFunction {
   ResponseAction Run() override;
 };
 
-class BraveRewardsFetchBalanceFunction : public ExtensionFunction {
+class BraveRewardsGetAvailableBalanceFunction : public ExtensionFunction {
  public:
-  DECLARE_EXTENSION_FUNCTION("braveRewards.fetchBalance", UNKNOWN)
+  DECLARE_EXTENSION_FUNCTION("braveRewards.getAvailableBalance", UNKNOWN)
 
  protected:
-  ~BraveRewardsFetchBalanceFunction() override;
+  ~BraveRewardsGetAvailableBalanceFunction() override;
 
   ResponseAction Run() override;
 
  private:
-  void OnBalance(
-      const ledger::type::Result result,
-      ledger::type::BalancePtr balance);
+  void OnBalanceFetched(ledger::type::Result result,
+                        ledger::type::BalancePtr balance);
 };
 
 class BraveRewardsGetExternalWalletFunction : public ExtensionFunction {

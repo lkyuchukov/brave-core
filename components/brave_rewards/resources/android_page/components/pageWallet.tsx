@@ -754,7 +754,7 @@ class PageWallet extends React.Component<Props, State> {
       pendingContributionTotal
     } = this.props.rewardsData
     const { total } = balance
-    const { modalBackup } = ui
+    const { modalBackup, walletServerProblem } = ui
 
     let externalWalletInfo: ExternalWallet | null = null
     const walletStatus = this.getExternalWalletStatus()
@@ -779,7 +779,7 @@ class PageWallet extends React.Component<Props, State> {
     return (
       <PageWalletWrapper>
         <WalletCard
-          balance={total}
+          balance={walletServerProblem ? null : total}
           externalWallet={externalWalletInfo}
           earningsThisMonth={adsData.adsEarningsThisMonth || 0}
           earningsLastMonth={adsData.adsEarningsLastMonth || 0}

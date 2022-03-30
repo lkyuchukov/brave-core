@@ -6,6 +6,7 @@ export const localeStrings = {
   walletAccountLink: 'Go to your $1 account',
   walletAddFunds: 'Add Funds',
   walletAutoContribute: 'Auto-Contribute',
+  walletBalanceUnavailable: 'N/A',
   walletDisconnected: 'Logged out',
   walletDisconnectLink: 'Disconnect from $1',
   walletEstimatedEarnings: 'Estimated Earnings',

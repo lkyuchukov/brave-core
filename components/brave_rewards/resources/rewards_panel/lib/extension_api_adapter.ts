@@ -30,8 +30,15 @@ import {
 // APIs are improved, the need for this adapter will diminish.
 
 export function getRewardsBalance () {
-  return new Promise<number>((resolve) => {
-    chrome.braveRewards.fetchBalance((balance) => { resolve(balance.total) })
+  return new Promise<number | null>((resolve) => {
+    chrome.braveRewards.getAvailableBalance((balance) => {
+      if (chrome.runtime.lastError) {
+        console.error(chrome.runtime.lastError.message)
+        resolve(null)
+      } else {
+        resolve(balance || 0)
+      }
+    })
   })
 }
 
@@ -52,7 +59,7 @@ export function getExternalWalletProviders () {
     // The extension API currently does not support retrieving a list of
     // external wallet providers.
     chrome.braveRewards.getExternalWallet((_, wallet) => {
-      const provider = externalWalletProviderFromString(wallet.type)
+      const provider = wallet && externalWalletProviderFromString(wallet.type)
       resolve(provider ? [provider] : [])
     })
   })
@@ -120,6 +127,11 @@ export function getExternalWallet () {
 
   return new Promise<ExternalWallet | null>((resolve) => {
     chrome.braveRewards.getExternalWallet((_, wallet) => {
+      if (!wallet) {
+        resolve(null)
+        return
+      }
+
       const provider = externalWalletProviderFromString(wallet.type)
       const status = mapStatus(wallet.status)
 

@@ -126,12 +126,14 @@ declare namespace chrome.braveRewards {
   const refreshPublisher: (publisherKey: string, callback: (status: number, publisherKey: string) => void) => {}
   const getAllNotifications: (callback: (list: RewardsExtension.Notification[]) => void) => {}
   const getInlineTippingPlatformEnabled: (key: string, callback: (enabled: boolean) => void) => {}
-  const fetchBalance: (callback: (balance: RewardsExtension.Balance) => void) => {}
+
+  function getAvailableBalance (callback: (balance?: number) => void): void
+
   const onReconcileComplete: {
     addListener: (callback: (result: number, type: number) => void) => void
   }
 
-  const getExternalWallet: (callback: (result: number, wallet: RewardsExtension.ExternalWallet) => void) => {}
+  const getExternalWallet: (callback: (result: number, wallet?: RewardsExtension.ExternalWallet) => void) => {}
 
   const disconnectWallet: () => {}
 

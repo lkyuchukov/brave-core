@@ -31,6 +31,7 @@ export function Card () {
   const nextPaymentDate = Date.now() + 1000 * 60 * 60 * 24 * daysUntilPayment
   const showGrant = knobs.boolean('Grant Available', false)
   const earningsReceived = knobs.boolean('Earnings received', false)
+  const balanceUnavailable = knobs.boolean('Balance unavailable', false)
 
   return (
     <LocaleContext.Provider value={localeContext}>
@@ -40,7 +41,7 @@ export function Card () {
             rewardsEnabled={true}
             adsEnabled={true}
             adsSupported={true}
-            rewardsBalance={91.5812}
+            rewardsBalance={balanceUnavailable ? null : 91.5812}
             exchangeCurrency='USD'
             exchangeRate={0.82}
             grantInfo={showGrant ? {

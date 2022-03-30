@@ -62,7 +62,7 @@ interface Props {
   rewardsEnabled: boolean
   adsEnabled: boolean
   adsSupported: boolean
-  rewardsBalance: number
+  rewardsBalance: number | null
   exchangeRate: number
   exchangeCurrency: string
   nextPaymentDate: number
@@ -99,24 +99,34 @@ export function RewardsCard (props: Props) {
           {getString('rewardsTokenBalance')}
         </style.balanceTitle>
         <style.balanceAmount>
-          <TokenAmount amount={props.rewardsBalance} />
-        </style.balanceAmount>
-        <style.balanceExchange>
-          <style.balanceExchangeAmount>
-            ≈&nbsp;
-            <ExchangeAmount
-              amount={props.rewardsBalance}
-              rate={props.exchangeRate}
-              currency={props.exchangeCurrency}
-            />
-          </style.balanceExchangeAmount>
           {
-            props.rewardsBalance > 0 && !showPending &&
-              <style.balanceExchangeNote>
-                {getString('rewardsExchangeValueNote')}
-              </style.balanceExchangeNote>
+            props.rewardsBalance
+              ? <TokenAmount amount={props.rewardsBalance} />
+              : getString('rewardsBalanceUnavailable')
           }
-        </style.balanceExchange>
+        </style.balanceAmount>
+        {
+          props.rewardsBalance &&
+            <style.balanceExchange>
+              {
+                props.rewardsBalance &&
+                  <style.balanceExchangeAmount>
+                    ≈&nbsp;
+                    <ExchangeAmount
+                      amount={props.rewardsBalance}
+                      rate={props.exchangeRate}
+                      currency={props.exchangeCurrency}
+                    />
+                  </style.balanceExchangeAmount>
+              }
+              {
+                props.rewardsBalance > 0 && !showPending &&
+                  <style.balanceExchangeNote>
+                    {getString('rewardsExchangeValueNote')}
+                  </style.balanceExchangeNote>
+              }
+            </style.balanceExchange>
+        }
         <style.pendingRewards>
           <PaymentStatusView
             earningsLastMonth={props.earningsLastMonth}

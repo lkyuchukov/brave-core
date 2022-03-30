@@ -1132,9 +1132,9 @@
         ]
       },
       {
-        "name": "fetchBalance",
+        "name": "getAvailableBalance",
         "type": "function",
-        "description": "Fetch balance",
+        "description": "Returns the user's available Rewards balance",
         "parameters": [
           {
             "type": "function",
@@ -1142,15 +1142,8 @@
             "parameters": [
               {
                 "name": "balance",
-                "type": "object",
-                "properties": {
-                  "total": {
-                    "type": "any"
-                  },
-                  "wallets": {
-                    "type": "any"
-                  }
-                }
+                "type": "number",
+                "description": "The user's current available Rewards balance"
               }
             ]
           }

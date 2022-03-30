@@ -87,10 +87,8 @@ export const balanceTitle = styled.div`
 `
 
 export const balanceAmount = styled.div`
-  .amount {
-    font-size: 36px;
-    line-height: 40px;
-  }
+  font-size: 36px;
+  line-height: 40px;
 
   .currency {
     font-size: 14px;

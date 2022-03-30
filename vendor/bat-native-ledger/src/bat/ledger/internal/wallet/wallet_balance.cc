@@ -148,6 +148,8 @@ void WalletBalance::OnFetchBalanceUphold(type::Balance info,
     info_ptr->total += balance;
   } else {
     BLOG(0, "Can't get uphold balance");
+    callback(type::Result::LEDGER_ERROR, nullptr);
+    return;
   }
 
   FetchBalanceBitflyer(std::move(info_ptr), callback);
@@ -187,6 +189,7 @@ void WalletBalance::OnFetchBalanceBitflyer(
     info_ptr->total += balance;
   } else {
     BLOG(0, "Can't get bitflyer balance");
+    callback(type::Result::LEDGER_ERROR, nullptr);
   }
 
   FetchBalanceGemini(std::move(info_ptr), callback);
@@ -223,6 +226,7 @@ void WalletBalance::OnFetchBalanceGemini(type::Balance info,
     info_ptr->total += balance;
   } else {
     BLOG(0, "Can't get gemini balance");
+    callback(type::Result::LEDGER_ERROR, nullptr);
   }
 
   callback(result, std::move(info_ptr));

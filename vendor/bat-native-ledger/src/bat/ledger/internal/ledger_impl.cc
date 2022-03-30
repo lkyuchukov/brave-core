@@ -744,42 +744,30 @@ void LedgerImpl::GetExternalWallet(const std::string& wallet_type,
 
     if (wallet_type == constant::kWalletUphold) {
       uphold()->GenerateWallet([this, callback](type::Result result) {
-        if (result != type::Result::LEDGER_OK &&
-            result != type::Result::CONTINUE) {
-          callback(result, nullptr);
-          return;
+        if (result == type::Result::CONTINUE) {
+          result = type::Result::LEDGER_OK;
         }
-
-        auto wallet = uphold()->GetWallet();
-        callback(type::Result::LEDGER_OK, std::move(wallet));
+        callback(result, uphold()->GetWallet());
       });
       return;
     }
 
     if (wallet_type == constant::kWalletBitflyer) {
       bitflyer()->GenerateWallet([this, callback](type::Result result) {
-        if (result != type::Result::LEDGER_OK &&
-            result != type::Result::CONTINUE) {
-          callback(result, nullptr);
-          return;
+        if (result == type::Result::CONTINUE) {
+          result = type::Result::LEDGER_OK;
         }
-
-        auto wallet = bitflyer()->GetWallet();
-        callback(type::Result::LEDGER_OK, std::move(wallet));
+        callback(result, bitflyer()->GetWallet());
       });
       return;
     }
 
     if (wallet_type == constant::kWalletGemini) {
       gemini()->GenerateWallet([this, callback](type::Result result) {
-        if (result != type::Result::LEDGER_OK &&
-            result != type::Result::CONTINUE) {
-          callback(result, nullptr);
-          return;
+        if (result == type::Result::CONTINUE) {
+          result = type::Result::LEDGER_OK;
         }
-
-        auto wallet = gemini()->GetWallet();
-        callback(type::Result::LEDGER_OK, std::move(wallet));
+        callback(result, gemini()->GetWallet());
       });
       return;
     }

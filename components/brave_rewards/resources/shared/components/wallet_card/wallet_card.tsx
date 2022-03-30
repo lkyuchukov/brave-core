@@ -24,7 +24,7 @@ const rangeFormatter = new Intl.DateTimeFormat(undefined, {
 })
 
 interface Props {
-  balance: number
+  balance: number | null
   externalWallet: ExternalWallet | null
   earningsThisMonth: number
   earningsLastMonth: number
@@ -66,13 +66,23 @@ export function WalletCard (props: Props) {
               {getString('walletYourBalance')}
             </style.balanceHeader>
             <style.batAmount data-test-id='rewards-balance-text'>
-              <TokenAmount amount={props.balance} />
+              {
+                props.balance === null
+                  ? getString('walletBalanceUnavailable')
+                  : <TokenAmount amount={props.balance} />
+              }
             </style.batAmount>
             <style.exchangeAmount>
-              <ExchangeAmount
-                amount={props.balance}
-                rate={props.exchangeRate}
-              />
+              {
+                // If the balance is not available, use a space to preserve the
+                // height of this element.
+                props.balance === null
+                  ? <>&nbsp;</>
+                  : <ExchangeAmount
+                      amount={props.balance}
+                      rate={props.exchangeRate}
+                    />
+              }
             </style.exchangeAmount>
           </style.rewardsBalance>
         </style.balancePanel>

@@ -30,7 +30,7 @@ export type PreInitialRewardsData = {
 
 export type InitialRewardsData = {
   report: NewTab.RewardsBalanceReport
-  balance: NewTab.RewardsBalance
+  balance?: number
   adsAccountStatement: NewTab.AdsAccountStatement
   parameters: NewTab.RewardsParameters
 }
@@ -139,7 +139,7 @@ export async function getRewardsInitialData (): Promise<InitialRewardsData> {
       new Promise(resolve => chrome.braveRewards.getBalanceReport(new Date().getMonth() + 1, new Date().getFullYear(), (report: NewTab.RewardsBalanceReport) => {
         resolve(report)
       })),
-      new Promise(resolve => chrome.braveRewards.fetchBalance((balance: NewTab.RewardsBalance) => {
+      new Promise(resolve => chrome.braveRewards.getAvailableBalance((balance) => {
         resolve(balance)
       })),
       new Promise(resolve => chrome.braveRewards.getRewardsParameters((parameters: NewTab.RewardsParameters) => {

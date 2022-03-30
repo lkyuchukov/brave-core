@@ -149,7 +149,7 @@ declare namespace NewTab {
   export interface RewardsWidgetState {
     rewardsEnabled: boolean
     adsSupported?: boolean
-    balance: RewardsBalance
+    balance?: number
     report?: RewardsBalanceReport
     adsAccountStatement: AdsAccountStatement
     dismissedNotifications: string[]
@@ -261,11 +261,6 @@ declare namespace NewTab {
     claimableUntil?: number
     expiresAt?: number
     amount: number
-  }
-
-  export interface RewardsBalance {
-    total: number
-    wallets: Record<string, number>
   }
 
   export interface AdsAccountStatement {

@@ -110,6 +110,11 @@ void Uphold::FetchBalance(FetchBalanceCallback callback) {
     return callback(type::Result::LEDGER_OK, 0.0);
   }
 
+  if (uphold_wallet->status == type::WalletStatus::DISCONNECTED_VERIFIED) {
+    callback(type::Result::LEDGER_ERROR, 0.0);
+    return;
+  }
+
   if (uphold_wallet->status != type::WalletStatus::VERIFIED) {
     BLOG(1, "Uphold wallet is not VERIFIED.");
     return callback(type::Result::LEDGER_OK, 0.0);

@@ -107,6 +107,11 @@ void Bitflyer::FetchBalance(FetchBalanceCallback callback) {
     return;
   }
 
+  if (wallet->status == type::WalletStatus::DISCONNECTED_VERIFIED) {
+    callback(type::Result::LEDGER_ERROR, 0.0);
+    return;
+  }
+
   if (wallet->status == type::WalletStatus::CONNECTED) {
     BLOG(1, "Wallet is connected");
     callback(type::Result::LEDGER_OK, 0.0);

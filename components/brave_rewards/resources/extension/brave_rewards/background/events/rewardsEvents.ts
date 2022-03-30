@@ -67,10 +67,6 @@ chrome.braveRewards.onRecurringTipRemoved.addListener((success: boolean) => {
 
 chrome.braveRewards.onReconcileComplete.addListener((result: number, type: number) => {
   if (result === 0) {
-    chrome.braveRewards.fetchBalance((balance: RewardsExtension.Balance) => {
-      rewardsPanelActions.onBalance(balance)
-    })
-
     chrome.braveRewards.getBalanceReport(new Date().getMonth() + 1, new Date().getFullYear(),
     (report: RewardsExtension.BalanceReport) => {
       rewardsPanelActions.onBalanceReport(report)
@@ -83,17 +79,7 @@ chrome.braveRewards.onDisconnectWallet.addListener((properties: {result: number,
     chrome.braveRewards.getExternalWallet((result: number, wallet: RewardsExtension.ExternalWallet) => {
       rewardsPanelActions.onExternalWallet(wallet)
     })
-
-    chrome.braveRewards.fetchBalance((balance: RewardsExtension.Balance) => {
-      rewardsPanelActions.onBalance(balance)
-    })
   }
-})
-
-chrome.braveRewards.onUnblindedTokensReady.addListener(() => {
-  chrome.braveRewards.fetchBalance((balance: RewardsExtension.Balance) => {
-    rewardsPanelActions.onBalance(balance)
-  })
 })
 
 chrome.braveRewards.onPromotionFinish.addListener((result: RewardsExtension.Result, promotion: RewardsExtension.Promotion) => {

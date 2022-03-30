@@ -192,6 +192,10 @@
     "message": "Auto-Contribute",
     "description": ""
   },
+  "walletBalanceUnavailable": {
+    "message": "N/A",
+    "description": "Message displayed when balance is unavailable"
+  },
   "walletDisconnected": {
     "message": "Logged out",
     "description": ""

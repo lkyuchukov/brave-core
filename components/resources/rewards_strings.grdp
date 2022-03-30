@@ -22,6 +22,9 @@
   <message name="IDS_REWARDS_WALLET_AUTO_CONTRIBUTE" desc="">
     Auto-Contribute
   </message>
+  <message name="IDS_REWARDS_WALLET_BALANCE_UNAVAILABLE" desc="">
+    N/A
+  </message>
   <message name="IDS_REWARDS_WALLET_DISCONNECTED" desc="">
     Logged out
   </message>

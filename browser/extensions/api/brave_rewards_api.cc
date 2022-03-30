@@ -999,46 +999,32 @@ BraveRewardsIsAutoContributeSupportedFunction::Run() {
       OneArgument(base::Value(rewards_service->IsAutoContributeSupported())));
 }
 
-BraveRewardsFetchBalanceFunction::
-~BraveRewardsFetchBalanceFunction() {
-}
+BraveRewardsGetAvailableBalanceFunction::
+    ~BraveRewardsGetAvailableBalanceFunction() = default;
 
 ExtensionFunction::ResponseAction
-BraveRewardsFetchBalanceFunction::Run() {
-  Profile* profile = Profile::FromBrowserContext(browser_context());
-  RewardsService* rewards_service =
-    RewardsServiceFactory::GetForProfile(profile);
+BraveRewardsGetAvailableBalanceFunction::Run() {
+  auto* profile = Profile::FromBrowserContext(browser_context());
+  auto* rewards_service = RewardsServiceFactory::GetForProfile(profile);
+
   if (!rewards_service) {
-    base::DictionaryValue balance_value;
-    return RespondNow(OneArgument(std::move(balance_value)));
+    return RespondNow(Error("The Rewards service is unavailable"));
   }
 
-  rewards_service->FetchBalance(
-      base::BindOnce(
-          &BraveRewardsFetchBalanceFunction::OnBalance,
-          this));
+  rewards_service->FetchBalance(base::BindOnce(
+      &BraveRewardsGetAvailableBalanceFunction::OnBalanceFetched, this));
+
   return RespondLater();
 }
 
-void BraveRewardsFetchBalanceFunction::OnBalance(
-    const ledger::type::Result result,
+void BraveRewardsGetAvailableBalanceFunction::OnBalanceFetched(
+    ledger::type::Result result,
     ledger::type::BalancePtr balance) {
-  base::Value balance_value(base::Value::Type::DICTIONARY);
   if (result == ledger::type::Result::LEDGER_OK && balance) {
-    balance_value.SetDoubleKey("total", balance->total);
-
-    base::Value wallets(base::Value::Type::DICTIONARY);
-    for (auto const& rate : balance->wallets) {
-      wallets.SetDoubleKey(rate.first, rate.second);
-    }
-    balance_value.SetKey("wallets", std::move(wallets));
+    Respond(OneArgument(base::Value(balance->total)));
   } else {
-    balance_value.SetDoubleKey("total", 0.0);
-    base::Value wallets(base::Value::Type::DICTIONARY);
-    balance_value.SetKey("wallets", std::move(wallets));
+    Respond(Error("Rewards balance unavailable"));
   }
-
-  Respond(OneArgument(std::move(balance_value)));
 }
 
 BraveRewardsGetExternalWalletFunction::

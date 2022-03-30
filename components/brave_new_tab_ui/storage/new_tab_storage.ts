@@ -65,10 +65,7 @@ export const defaultState: NewTab.State = {
       earningsThisMonth: 0,
       earningsLastMonth: 0
     },
-    balance: {
-      total: 0,
-      wallets: {}
-    },
+    balance: 0,
     dismissedNotifications: [],
     rewardsEnabled: false,
     enabledAds: false,
@@ -255,6 +252,11 @@ const cleanData = (state: NewTab.State) => {
       typeof (adsAccountStatement.nextPaymentDate as any) === 'string') {
     adsAccountStatement.nextPaymentDate =
       Number(adsAccountStatement.nextPaymentDate) * 1000 || 0
+  }
+
+  // rewardsState.balance updated from object to optional number
+  if (rewardsState.balance && typeof rewardsState.balance !== 'number') {
+    rewardsState.balance = defaultState.rewardsState.balance
   }
 
   if (!rewardsState.parameters) {
