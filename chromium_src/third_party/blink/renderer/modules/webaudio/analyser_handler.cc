@@ -22,6 +22,6 @@
     }                                                                        \
   }
 
-#include "src/third_party/blink/renderer/modules/webaudio/analyser_node.cc"
+#include "src/third_party/blink/renderer/modules/webaudio/analyser_handler.cc"
 
 #undef BRAVE_ANALYSERNODE_CONSTRUCTOR
