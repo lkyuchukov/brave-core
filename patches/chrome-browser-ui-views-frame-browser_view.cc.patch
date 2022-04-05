@@ -1,0 +1,12 @@
+diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
+index c20c5ed30291fc59b91c72c64bf17d276bcaa137..e750eb9fccfbf9e7fafcf9b60818cff170350d2c 100644
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -2179,6 +2179,7 @@ void BrowserView::OnFeatureEngagementTrackerInitialized(bool initialized) {
+   if (!initialized)
+     return;
+   MaybeShowWebUITabStripIPH();
++  BRAVE_BROWSER_VIEW_DEACTIVATE_READING_LIST
+   base::SequencedTaskRunnerHandle::Get()->PostDelayedTask(
+       FROM_HERE,
+       base::BindOnce(&BrowserView::MaybeShowReadingListInSidePanelIPH,

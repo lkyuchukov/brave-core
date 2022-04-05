@@ -5,6 +5,7 @@
 
 #include "src/components/reading_list/features/reading_list_switches.cc"
 
+#include "base/feature_list.h"
 #include "base/feature_override.h"
 
 namespace reading_list {
