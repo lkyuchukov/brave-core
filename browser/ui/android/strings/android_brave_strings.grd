@@ -2701,6 +2701,9 @@ If you don't accept this request, VPN will not reconnect and your internet conne
     <message name="IDS_WALLET_ADD_CUSTOM_ASSET" desc="Add custom asset clickable name">
       Add custom asset
     </message>
+    <message name="IDS_WALLET_ADD_CUSTOM_ASSET_ADVANCED" desc="Advanced section name">
+      Advanced
+    </message>
     <message name="IDS_WALLET_ADD_CUSTOM_ASSET_ADD_BUTTON" desc="Add custom asset dialog Add button text">
       Add
     </message>
@@ -2715,6 +2718,9 @@ If you don't accept this request, VPN will not reconnect and your internet conne
     </message>
     <message name="IDS_WALLET_ADD_CUSTOM_ASSET_DECIMALS" desc="Add custom asset dialog Decimals of precision field">
       Decimals of precision
+    </message>
+    <message name="IDS_WALLET_ADD_CUSTOM_ASSET_TOKEN_ID" desc="Add custom asset dialog Token ID">
+      Token ID (only for ERC721)
     </message>
     <message name="IDS_WALLET_REMOVE_CUSTOM_ASSET" desc="Remove custom asset dialog title">
       Remove custom asset

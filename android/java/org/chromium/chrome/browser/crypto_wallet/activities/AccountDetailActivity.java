@@ -50,6 +50,7 @@ import org.chromium.mojo.bindings.ConnectionErrorHandler;
 import org.chromium.mojo.system.MojoException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
@@ -126,41 +127,15 @@ public class AccountDetailActivity
         portfolioHelper.setChainId(chainId);
         portfolioHelper.calculateBalances(() -> {
             RecyclerView rvAssets = findViewById(R.id.rv_assets);
-            WalletCoinAdapter walletCoinAdapter =
-                    new WalletCoinAdapter(WalletCoinAdapter.AdapterType.VISIBLE_ASSETS_LIST);
-            List<WalletListItemModel> walletListItemModelList = new ArrayList<>();
+            
+            BlockchainToken[] userAssets = portfolioHelper.getUserAssets();
+            HashMap<String, Double> perTokenCryptoSum = portfolioHelper.getPerTokenCryptoSum();
+            HashMap<String, Double> perTokenFiatSum = portfolioHelper.getPerTokenFiatSum();
 
             String tokensPath = BlockchainRegistryFactory.getInstance().getTokensIconsLocation();
 
-            for (BlockchainToken userAsset : portfolioHelper.getUserAssets()) {
-                String currentAssetSymbol = userAsset.symbol.toLowerCase(Locale.getDefault());
-                Double fiatBalance = Utils.getOrDefault(
-                        portfolioHelper.getPerTokenFiatSum(), currentAssetSymbol, 0.0d);
-                String fiatBalanceString =
-                        String.format(Locale.getDefault(), "$%,.2f", fiatBalance);
-                Double cryptoBalance = Utils.getOrDefault(
-                        portfolioHelper.getPerTokenCryptoSum(), currentAssetSymbol, 0.0d);
-                String cryptoBalanceString = String.format(
-                        Locale.getDefault(), "%.4f %s", cryptoBalance, userAsset.symbol);
-
-                WalletListItemModel walletListItemModel =
-                        new WalletListItemModel(R.drawable.ic_eth, userAsset.name, userAsset.symbol,
-                                // Amount in USD
-                                fiatBalanceString,
-                                // Amount in current crypto currency/token
-                                cryptoBalanceString);
-
-                if (userAsset.symbol.equals("ETH")) {
-                    userAsset.logo = "eth.png";
-                }
-                walletListItemModel.setIconPath("file://" + tokensPath + "/" + userAsset.logo);
-                walletListItemModel.setBlockchainToken(userAsset);
-                walletListItemModelList.add(walletListItemModel);
-            }
-
-            walletCoinAdapter.setWalletListItemModelList(walletListItemModelList);
+            WalletCoinAdapter walletCoinAdapter = Utils.setupVisibleAssetList(userAssets, perTokenCryptoSum, perTokenFiatSum, tokensPath);
             walletCoinAdapter.setOnWalletListItemClick(AccountDetailActivity.this);
-            walletCoinAdapter.setWalletListItemType(Utils.ASSET_ITEM);
             rvAssets.setAdapter(walletCoinAdapter);
             rvAssets.setLayoutManager(new LinearLayoutManager(this));
         });

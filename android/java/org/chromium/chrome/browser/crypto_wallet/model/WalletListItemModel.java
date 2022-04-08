@@ -19,6 +19,7 @@ public class WalletListItemModel {
     private Bitmap mTxStatusBitmap;
     private String mText1;
     private String mText2;
+    private String mId;
     private BlockchainToken mBlockchainToken;
     private boolean mIsImportedAccount;
     private boolean mIsUserSelected;
@@ -29,23 +30,20 @@ public class WalletListItemModel {
     private String mChainSymbol;
     private int mChainDecimals;
 
-    public WalletListItemModel(int icon, String title, String subTitle, String text1, String text2,
-            boolean isImportedAccount) {
+    public WalletListItemModel(
+            int icon, String title, String subTitle, String id, String text1, String text2) {
         mIcon = icon;
         mTitle = title;
         mSubTitle = subTitle;
+        mId = id;
         mText1 = text1;
         mText2 = text2;
-        mIsImportedAccount = isImportedAccount;
     }
 
-    public WalletListItemModel(
-            int icon, String title, String subTitle, String text1, String text2) {
-        mIcon = icon;
-        mTitle = title;
-        mSubTitle = subTitle;
-        mText1 = text1;
-        mText2 = text2;
+    public WalletListItemModel(int icon, String title, String subTitle, String text1, String text2,
+            boolean isImportedAccount) {
+        this(icon, title, subTitle, "", text1, text2);
+        mIsImportedAccount = isImportedAccount;
     }
 
     public void setTransactionInfo(TransactionInfo txInfo) {
@@ -143,7 +141,8 @@ public class WalletListItemModel {
     }
 
     public String getTitle() {
-        return mTitle;
+        // ERC721 has format [Title #ID]
+        return mTitle + ((mId == null || mId.trim().isEmpty()) ? "" : "#" + mId);
     }
 
     public String getSubTitle() {

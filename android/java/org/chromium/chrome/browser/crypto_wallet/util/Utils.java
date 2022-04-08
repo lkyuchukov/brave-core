@@ -165,7 +165,7 @@ public class Utils {
         ClipboardManager clipboard =
                 (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         String pasteData = "";
-        if (!(clipboard.hasPrimaryClip())) {
+        if (!(clipboard.hasPrimaryClip()) || clipboard.getPrimaryClipDescription() == null) {
             return pasteData;
         } else if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) {
             return pasteData;
@@ -1151,7 +1151,8 @@ public class Utils {
             String chainSymbol, int chainDecimals, WalletCoinAdapter walletTxCoinAdapter) {
         assert chainId != null;
         assert blockchainRegistry != null;
-        TokenUtils.getAllTokensFiltered(braveWalletService, blockchainRegistry, chainId, tokens -> {
+        // TODO: Transaction Parser (components/brave_wallet_ui/common/hooks/transaction-parser.ts)
+        TokenUtils.getAllTokensFiltered(braveWalletService, blockchainRegistry, chainId, TokenUtils.TokenType.ERC20, tokens -> {
             HashMap<String, String> assets = new HashMap<String, String>();
             HashMap<String, Integer> assetsDecimals = new HashMap<String, Integer>();
             for (String accountName : pendingTxInfos.keySet()) {
@@ -1303,7 +1304,7 @@ public class Utils {
             valueToDisplay = "0.0000 ETH";
         }
         WalletListItemModel itemModel =
-                new WalletListItemModel(R.drawable.ic_eth, action, detailInfo, null, null);
+                new WalletListItemModel(R.drawable.ic_eth, action, detailInfo, "", null, null);
         updateWalletCoinTransactionStatus(itemModel, context, txInfo);
         boolean isEIP1559 = !txInfo.txDataUnion.getEthTxData1559().maxPriorityFeePerGas.isEmpty()
                 && !txInfo.txDataUnion.getEthTxData1559().maxFeePerGas.isEmpty();
@@ -1472,5 +1473,51 @@ public class Utils {
         if (chromeActivity == null) return Profile.getLastUsedRegularProfile(); // Last resort
 
         return chromeActivity.getTabModelSelector().getModel(isIncognito).getProfile();
+    }
+    
+    public static WalletCoinAdapter setupVisibleAssetList(BlockchainToken[] userAssets,
+            HashMap<String, Double> perTokenCryptoSum, HashMap<String, Double> perTokenFiatSum,
+            String tokensPath) {
+        WalletCoinAdapter walletCoinAdapter =
+                new WalletCoinAdapter(WalletCoinAdapter.AdapterType.VISIBLE_ASSETS_LIST);
+        List<WalletListItemModel> walletListItemModelList = new ArrayList<>();
+
+        for (BlockchainToken userAsset : userAssets) {
+            String currentAssetSymbol = userAsset.symbol.toLowerCase(Locale.getDefault());
+            Double fiatBalance = Utils.getOrDefault(
+                    perTokenFiatSum, currentAssetSymbol, 0.0d);
+            String fiatBalanceString =
+                    String.format(Locale.getDefault(), "$%,.2f", fiatBalance);
+            Double cryptoBalance = Utils.getOrDefault(
+                    perTokenCryptoSum, currentAssetSymbol, 0.0d);
+            String cryptoBalanceString = String.format(
+                    Locale.getDefault(), "%.4f %s", cryptoBalance, userAsset.symbol);
+
+            // Override amount to 1 for ERC721
+            if (userAsset.isErc721) {
+                fiatBalanceString = "1";
+                cryptoBalanceString = String.format(Locale.getDefault(), "%d %s", 1, userAsset.symbol);
+            }
+
+            WalletListItemModel walletListItemModel =
+                    new WalletListItemModel(R.drawable.ic_eth, userAsset.name, userAsset.symbol,
+                            userAsset.tokenId,
+                            // Amount in USD
+                            fiatBalanceString,
+                            // Amount in current crypto currency/token
+                            cryptoBalanceString);
+
+            if (userAsset.symbol.equals("ETH")) {
+                userAsset.logo = "eth.png";
+            }
+            walletListItemModel.setIconPath("file://" + tokensPath + "/" + userAsset.logo);
+            walletListItemModel.setBlockchainToken(userAsset);
+            walletListItemModelList.add(walletListItemModel);
+        }
+
+        walletCoinAdapter.setWalletListItemModelList(walletListItemModelList);
+        walletCoinAdapter.setWalletListItemType(Utils.ASSET_ITEM);
+
+        return walletCoinAdapter;
     }
 }

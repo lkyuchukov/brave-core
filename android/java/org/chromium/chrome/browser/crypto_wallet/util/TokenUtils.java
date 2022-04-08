@@ -5,6 +5,7 @@
 
 package org.chromium.chrome.browser.crypto_wallet.util;
 
+import org.chromium.base.Log;
 import org.chromium.brave_wallet.mojom.BlockchainRegistry;
 import org.chromium.brave_wallet.mojom.BlockchainToken;
 import org.chromium.brave_wallet.mojom.BraveWalletConstants;
@@ -13,58 +14,72 @@ import org.chromium.brave_wallet.mojom.CoinType;
 import org.chromium.brave_wallet.mojom.OnRampProvider;
 import org.chromium.chrome.browser.crypto_wallet.util.Utils;
 
+import java.lang.UnsupportedOperationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class TokenUtils {
-    private static boolean shouldTokenBeFilteredOut(BlockchainToken blockchainToken) {
-        return blockchainToken.isErc721;
-    }
+    // For  convenience, ERC20 also means ETH
+    public enum TokenType {ERC20, ERC721, ALL};
 
-    private static boolean shouldUserVisibleTokenBeFilteredOut(BlockchainToken blockchainToken) {
-        return blockchainToken.isErc721 || !blockchainToken.visible;
-    }
-
-    private static BlockchainToken[] filterOut(BlockchainToken[] tokens, boolean allTokens) {
+    private static BlockchainToken[] filterTokens(BlockchainToken[] tokens, TokenType tokenType, boolean keepVisibleOnly) {
         ArrayList<BlockchainToken> arrayTokens = new ArrayList<>(Arrays.asList(tokens));
-        if (allTokens) {
-            Utils.removeIf(arrayTokens, t -> TokenUtils.shouldTokenBeFilteredOut(t));
-        } else {
-            Utils.removeIf(arrayTokens, t -> TokenUtils.shouldUserVisibleTokenBeFilteredOut(t));
-        }
+        Utils.removeIf(arrayTokens, t -> {
+            boolean typeFilter;
+            switch (tokenType) {
+                case ERC20:
+                    typeFilter = !t.isErc20 && !"ETH".equals(t.symbol);
+                    break;
+                case ERC721:
+                    typeFilter = !t.isErc721;
+                    break;
+                case ALL:
+                    typeFilter = false;
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Token type not supported.");
+            }
+            if (tokenType != TokenType.ALL)
+            Log.w("TokenUtils", "filterTokens: token: name: " + t.symbol + " visible: " + String.valueOf(t.visible)
+                + " chainId: " + t.chainId
+                + " isErc20: " + String.valueOf(t.isErc20) + " isErc721: " + String.valueOf(t.isErc721)
+                +  " typeFilter: " + String.valueOf(typeFilter) +  " keepVisibleOnly: " + String.valueOf(keepVisibleOnly)
+                + " removed: " + String.valueOf(typeFilter || (keepVisibleOnly && !t.visible)));
+            return typeFilter || (keepVisibleOnly && !t.visible);
+        });
 
         return arrayTokens.toArray(new BlockchainToken[0]);
     }
 
     public static void getUserAssetsFiltered(BraveWalletService braveWalletService, String chainId,
-            BraveWalletService.GetUserAssets_Response callback) {
+            TokenType tokenType, BraveWalletService.GetUserAssets_Response callback) {
         braveWalletService.getUserAssets(chainId, CoinType.ETH, (BlockchainToken[] tokens) -> {
-            BlockchainToken[] filteredTokens = filterOut(tokens, false);
+            BlockchainToken[] filteredTokens = filterTokens(tokens, tokenType, true);
             callback.call(filteredTokens);
         });
     }
 
     public static void getAllTokensFiltered(BraveWalletService braveWalletService,
             BlockchainRegistry blockchainRegistry, String chainId,
-            BlockchainRegistry.GetAllTokens_Response callback) {
+            TokenType tokenType, BlockchainRegistry.GetAllTokens_Response callback) {
         blockchainRegistry.getAllTokens(
                 BraveWalletConstants.MAINNET_CHAIN_ID, CoinType.ETH, (BlockchainToken[] tokens) -> {
                     braveWalletService.getUserAssets(
                             chainId, CoinType.ETH, (BlockchainToken[] userTokens) -> {
                                 BlockchainToken[] filteredTokens =
-                                        filterOut(concatenateTwoArrays(tokens, userTokens), true);
-                                callback.call(filteredTokens);
-                            });
+                                        filterTokens(concatenateTwoArrays(tokens, userTokens), tokenType, false);
+                        callback.call(filteredTokens);
+                    });
                 });
     }
 
     public static void getBuyTokensFiltered(BlockchainRegistry blockchainRegistry,
-            BlockchainRegistry.GetAllTokens_Response callback) {
+            TokenType tokenType, BlockchainRegistry.GetAllTokens_Response callback) {
         blockchainRegistry.getBuyTokens(OnRampProvider.WYRE, BraveWalletConstants.MAINNET_CHAIN_ID,
                 (BlockchainToken[] tokens) -> {
-                    BlockchainToken[] filteredTokens = filterOut(tokens, true);
+                    BlockchainToken[] filteredTokens = filterTokens(tokens, tokenType, false);
                     callback.call(filteredTokens);
                 });
     }
