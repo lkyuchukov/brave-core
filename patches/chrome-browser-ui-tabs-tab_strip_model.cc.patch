@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/tabs/tab_strip_model.cc b/chrome/browser/ui/tabs/tab_strip_model.cc
-index 415d3605ff3be8a80396ec7c7ea4ac3f3b71e9cb..800adac46aa100abc60fe903d1280b674b5c0209 100644
+index 501eb5506077d47b5490d51c131ba5bee2748fd3..abab0dc9f48386590320088dd4d96391e1cc67f4 100644
 --- a/chrome/browser/ui/tabs/tab_strip_model.cc
 +++ b/chrome/browser/ui/tabs/tab_strip_model.cc
 @@ -1240,6 +1240,7 @@ void TabStripModel::RemoveFromGroup(const std::vector<int>& indices) {
