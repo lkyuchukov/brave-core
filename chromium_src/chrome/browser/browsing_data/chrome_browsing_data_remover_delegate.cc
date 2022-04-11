@@ -13,4 +13,10 @@
 #define CHROME_BROWSER_WEB_APPLICATIONS_WEB_APP_UTILS_H_
 #endif  // BUILDFLAG(IS_ANDROID)
 
+#define BRAVE_BROWSER_TRACING_DATA_TYPE_IPFS_CACHE \
+  case TracingDataType::kIPFSCache:                \
+    return "kIPFSCache";
+
 #include "src/chrome/browser/browsing_data/chrome_browsing_data_remover_delegate.cc"
+
+#undef BRAVE_BROWSER_TRACING_DATA_TYPE_IPFS_CACHE
