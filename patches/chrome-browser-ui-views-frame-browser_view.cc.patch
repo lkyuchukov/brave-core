@@ -1,8 +1,8 @@
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index c20c5ed30291fc59b91c72c64bf17d276bcaa137..e750eb9fccfbf9e7fafcf9b60818cff170350d2c 100644
+index ce0286c8ec074fcb33456da25ef5a678c11e252e..502c800e4a711e158f323153e0a181b3b1f92a34 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
-@@ -2179,6 +2179,7 @@ void BrowserView::OnFeatureEngagementTrackerInitialized(bool initialized) {
+@@ -2180,6 +2180,7 @@ void BrowserView::OnFeatureEngagementTrackerInitialized(bool initialized) {
    if (!initialized)
      return;
    MaybeShowWebUITabStripIPH();
