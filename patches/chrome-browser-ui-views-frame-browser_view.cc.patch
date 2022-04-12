@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/views/frame/browser_view.cc b/chrome/browser/ui/views/frame/browser_view.cc
-index ce0286c8ec074fcb33456da25ef5a678c11e252e..502c800e4a711e158f323153e0a181b3b1f92a34 100644
+index ce0286c8ec074fcb33456da25ef5a678c11e252e..c1a961381d59942c3e0d6cc026d5ed5e5705f5fb 100644
 --- a/chrome/browser/ui/views/frame/browser_view.cc
 +++ b/chrome/browser/ui/views/frame/browser_view.cc
 @@ -2180,6 +2180,7 @@ void BrowserView::OnFeatureEngagementTrackerInitialized(bool initialized) {
