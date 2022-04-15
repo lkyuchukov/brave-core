@@ -152,7 +152,7 @@ void BraveSyncHandler::HandleGetQRCode(const base::Value::List& args) {
   const std::string time_limited_sync_code = args[1].GetString();
 
   // Sync code arrives here with time-limit 25th word, remove it to get proper
-  // pure seed for QR generation
+  // pure seed for QR generation  (QR codes have their own expiry)
   std::string pure_sync_code;
   auto validation_result =
       TimeLimitedWords::Validate(time_limited_sync_code, &pure_sync_code);
