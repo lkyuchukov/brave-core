@@ -163,7 +163,10 @@ TEST(TimeLimitedWordsTest, Validate) {
 
   {
     // Valid v2 sync code, after sunset date, day modulo 2048 which is
-    // "2027-08-11 00:00:00.000 UTC"
+    // "2027-11-23 00:00:00.000 UTC"
+    // Note: While this date is way too far into the future, the codes repeat
+    // after a few years and so this becomes valid again, an unfortunate
+    // limitation of this scheme.
     const std::string validModulo2048Word =
         TimeLimitedWords::GetWordByIndex(2048);
     const std::string validModulo2048Words =
