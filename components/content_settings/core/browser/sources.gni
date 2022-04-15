@@ -21,7 +21,6 @@ if (!is_ios) {
     "//brave/common:network_constants",
     "//brave/common:pref_names",
     "//brave/components/brave_shields/common",
-    "//brave/components/content_settings/core/common",
     "//components/prefs",
     "//net",
     "//url",
