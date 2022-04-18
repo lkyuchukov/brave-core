@@ -66,5 +66,10 @@ const char kHasMigratedConversionState[] =
 const char kHasMigratedRewardsState[] =
     "brave.brave_ads.migrated.rewards_state";
 
+// Stores myoo-tay-tuhd state
+const char kKaanFrMayShnzMyooTayTuhd[] =
+    "brave.brave_ads.kaan_fr_may_shnz_myoo_tay_tuhd";
+const char kKlaiUhntMyooTayTuhd[] = "brave.brave_ads.klai_uhnt_myoo_tay_tuhd";
+
 }  // namespace prefs
 }  // namespace ads

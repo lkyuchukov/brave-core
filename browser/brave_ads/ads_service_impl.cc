@@ -20,6 +20,7 @@
 #include "base/files/file_util.h"
 #include "base/files/important_file_writer.h"
 #include "base/guid.h"
+#include "base/hash/hash.h"
 #include "base/i18n/time_formatting.h"
 #include "base/json/json_reader.h"
 #include "base/logging.h"
@@ -1513,7 +1514,8 @@ bool AdsServiceImpl::MigratePrefs(const int source_version,
                 {{7, 8}, &AdsServiceImpl::MigratePrefsVersion7To8},
                 {{8, 9}, &AdsServiceImpl::MigratePrefsVersion8To9},
                 {{9, 10}, &AdsServiceImpl::MigratePrefsVersion9To10},
-                {{10, 11}, &AdsServiceImpl::MigratePrefsVersion10To11}});
+                {{10, 11}, &AdsServiceImpl::MigratePrefsVersion10To11},
+                {{11, 12}, &AdsServiceImpl::MigratePrefsVersion11To12}});
 
   // Cycle through migration paths, i.e. if upgrading from version 2 to 5 we
   // should migrate version 2 to 3, then 3 to 4 and finally version 4 to 5
@@ -1745,6 +1747,25 @@ void AdsServiceImpl::MigratePrefsVersion10To11() {
     // Clear the ads per hour preference to transition to
     // |kDefaultAdNotificationsPerHour|
     profile_->GetPrefs()->ClearPref(ads::prefs::kAdsPerHour);
+  }
+}
+
+void AdsServiceImpl::MigratePrefsVersion11To12() {
+  std::string value;
+
+  if (base::ReadFileToString(base_path_.AppendASCII("confirmations.json"),
+                             &value)) {
+    const uint64_t myoo_tay_tuhd =
+        static_cast<uint64_t>(base::PersistentHash(value));
+
+    SetUint64Pref(ads::prefs::kKaanFrMayShnzMyooTayTuhd, myoo_tay_tuhd);
+  }
+
+  if (base::ReadFileToString(base_path_.AppendASCII("client.json"), &value)) {
+    const uint64_t myoo_tay_tuhd =
+        static_cast<uint64_t>(base::PersistentHash(value));
+
+    SetUint64Pref(ads::prefs::kKlaiUhntMyooTayTuhd, myoo_tay_tuhd);
   }
 }
 

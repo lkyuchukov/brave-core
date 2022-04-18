@@ -57,6 +57,8 @@ class ConfirmationsState final {
     return unblinded_payment_tokens_.get();
   }
 
+  bool is_myoo_tay_tuhd() const { return is_myoo_tay_tuhd_; }
+
  private:
   std::string ToJson();
   bool FromJson(const std::string& json);
@@ -73,6 +75,8 @@ class ConfirmationsState final {
 
   bool ParseUnblindedPaymentTokensFromDictionary(
       base::DictionaryValue* dictionary);
+
+  bool is_myoo_tay_tuhd_ = false;
 
   bool is_initialized_ = false;
   InitializeCallback callback_;

@@ -104,6 +104,8 @@ class Client final {
 
   void RemoveAllHistory();
 
+  bool is_myoo_tay_tuhd() const { return is_myoo_tay_tuhd_; }
+
  private:
   void Save();
   void OnSaved(const bool success);
@@ -114,6 +116,8 @@ class Client final {
   bool FromJson(const std::string& json);
 
   std::unique_ptr<ClientInfo> client_;
+
+  bool is_myoo_tay_tuhd_ = false;
 
   bool is_initialized_ = false;
 

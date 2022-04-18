@@ -78,6 +78,9 @@ void AdsService::RegisterProfilePrefs(
 
   registry->RegisterBooleanPref(ads::prefs::kHasMigratedConversionState, false);
   registry->RegisterBooleanPref(ads::prefs::kHasMigratedRewardsState, false);
+
+  registry->RegisterUint64Pref(ads::prefs::kKaanFrMayShnzMyooTayTuhd, 0);
+  registry->RegisterUint64Pref(ads::prefs::kKlaiUhntMyooTayTuhd, 0);
 }
 
 }  // namespace brave_ads

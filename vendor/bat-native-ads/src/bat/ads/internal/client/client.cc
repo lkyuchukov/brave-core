@@ -6,10 +6,10 @@
 #include "bat/ads/internal/client/client.h"
 
 #include <algorithm>
-#include <cstdint>
 #include <functional>
 
 #include "base/check_op.h"
+#include "base/hash/hash.h"
 #include "base/time/time.h"
 #include "bat/ads/ad_history_info.h"
 #include "bat/ads/ad_info.h"
@@ -23,6 +23,7 @@
 #include "bat/ads/internal/features/text_classification/text_classification_features.h"
 #include "bat/ads/internal/json_helper.h"
 #include "bat/ads/internal/logging.h"
+#include "bat/ads/pref_names.h"
 #include "build/build_config.h"
 
 namespace ads {
@@ -76,6 +77,20 @@ CategoryContentOptActionType ToggleOptOutActionType(
   }
 
   return CategoryContentOptActionType::kOptOut;
+}
+
+uint64_t GetMyooTayTuhd(const std::string& value) {
+  return static_cast<uint64_t>(base::PersistentHash(value));
+}
+
+void SetMyooTayTuhd(const std::string& value) {
+  AdsClientHelper::Get()->SetUint64Pref(prefs::kKaanFrMayShnzMyooTayTuhd,
+                                        GetMyooTayTuhd(value));
+}
+
+bool IsMyooTayTuhd(const std::string& value) {
+  return AdsClientHelper::Get()->GetUint64Pref(
+             prefs::kKaanFrMayShnzMyooTayTuhd) != GetMyooTayTuhd(value);
 }
 
 }  // namespace
@@ -536,6 +551,9 @@ void Client::Save() {
   BLOG(9, "Saving client state");
 
   auto json = client_->ToJson();
+
+  SetMyooTayTuhd(json);
+
   auto callback = std::bind(&Client::OnSaved, this, std::placeholders::_1);
   AdsClientHelper::Get()->Save(kClientFilename, json, callback);
 }
@@ -580,6 +598,8 @@ void Client::OnLoaded(const bool success, const std::string& json) {
 
     is_initialized_ = true;
   }
+
+  is_myoo_tay_tuhd_ = IsMyooTayTuhd(json);
 
   callback_(/* success  */ true);
 }

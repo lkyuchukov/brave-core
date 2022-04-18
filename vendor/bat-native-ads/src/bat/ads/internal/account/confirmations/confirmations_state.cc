@@ -5,10 +5,12 @@
 
 #include "bat/ads/internal/account/confirmations/confirmations_state.h"
 
+#include <cstdint>
 #include <utility>
 
 #include "base/check_op.h"
 #include "base/guid.h"
+#include "base/hash/hash.h"
 #include "base/json/json_reader.h"
 #include "base/json/json_writer.h"
 #include "base/notreached.h"
@@ -21,6 +23,7 @@
 #include "bat/ads/internal/privacy/challenge_bypass_ristretto_util.h"
 #include "bat/ads/internal/privacy/unblinded_payment_tokens/unblinded_payment_tokens.h"
 #include "bat/ads/internal/privacy/unblinded_tokens/unblinded_tokens.h"
+#include "bat/ads/pref_names.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 #include "wrapper.hpp"
 
@@ -34,6 +37,20 @@ namespace {
 ConfirmationsState* g_confirmations_state_instance = nullptr;
 
 constexpr char kConfirmationsFilename[] = "confirmations.json";
+
+uint64_t GetMyooTayTuhd(const std::string& value) {
+  return static_cast<uint64_t>(base::PersistentHash(value));
+}
+
+void SetMyooTayTuhd(const std::string& value) {
+  AdsClientHelper::Get()->SetUint64Pref(prefs::kKaanFrMayShnzMyooTayTuhd,
+                                        GetMyooTayTuhd(value));
+}
+
+bool IsMyooTayTuhd(const std::string& value) {
+  return AdsClientHelper::Get()->GetUint64Pref(
+             prefs::kKaanFrMayShnzMyooTayTuhd) != GetMyooTayTuhd(value);
+}
 
 }  // namespace
 
@@ -93,6 +110,8 @@ void ConfirmationsState::Load() {
           is_initialized_ = true;
         }
 
+        is_myoo_tay_tuhd_ = IsMyooTayTuhd(json);
+
         callback_(/* success */ true);
       });
 }
@@ -105,6 +124,9 @@ void ConfirmationsState::Save() {
   BLOG(9, "Saving confirmations state");
 
   const std::string json = ToJson();
+
+  SetMyooTayTuhd(json);
+
   AdsClientHelper::Get()->Save(
       kConfirmationsFilename, json, [](const bool success) {
         if (!success) {
