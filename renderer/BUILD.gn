@@ -16,6 +16,7 @@ source_set("renderer") {
     "//brave/components/brave_search/common",
     "//brave/components/brave_search/renderer",
     "//brave/components/brave_shields/common",
+    "//brave/components/brave_vpn/renderer",
     "//brave/components/brave_wallet/renderer",
     "//brave/components/cosmetic_filters/renderer",
     "//brave/components/skus/renderer",

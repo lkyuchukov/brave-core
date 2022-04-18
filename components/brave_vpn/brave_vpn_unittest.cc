@@ -11,7 +11,7 @@
 #include "brave/components/brave_vpn/brave_vpn_service.h"
 #include "brave/components/brave_vpn/brave_vpn_service_helper.h"
 #include "brave/components/brave_vpn/brave_vpn_utils.h"
-#include "brave/components/brave_vpn/features.h"
+#include "brave/components/brave_vpn/common/features.h"
 #include "brave/components/brave_vpn/pref_names.h"
 #include "brave/components/skus/browser/pref_names.h"
 #include "brave/components/skus/browser/skus_context_impl.h"

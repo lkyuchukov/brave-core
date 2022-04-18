@@ -16,14 +16,13 @@ static_library("brave_vpn") {
     "brave_vpn_service_observer.h",
     "brave_vpn_utils.cc",
     "brave_vpn_utils.h",
-    "features.cc",
-    "features.h",
   ]
 
   deps = [
-    "mojom",
     "//base",
     "//brave/components/api_request_helper:api_request_helper",
+    "//brave/components/brave_vpn/common",
+    "//brave/components/brave_vpn/common:mojom",
     "//brave/components/resources:strings",
     "//brave/components/skus/browser",
     "//brave/components/skus/common",
@@ -114,6 +113,7 @@ source_set("unit_tests") {
     deps = [
       ":brave_vpn",
       "//base",
+      "//brave/components/brave_vpn/common",
       "//brave/components/skus/browser",
       "//brave/components/skus/common",
       "//brave/components/skus/common:mojom",
