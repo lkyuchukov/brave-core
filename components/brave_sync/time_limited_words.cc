@@ -12,6 +12,7 @@
 #include "base/containers/span.h"
 #include "base/logging.h"
 #include "base/notreached.h"
+#include "base/strings/strcat.h"
 #include "base/strings/string_split.h"
 #include "base/strings/string_util.h"
 #include "base/time/time.h"
@@ -117,7 +118,7 @@ std::string TimeLimitedWords::GenerateForDate(const std::string& pure_words,
 
   std::string last_word = GetWordByIndex(days_since_words_v2_epoch);
 
-  std::string time_limited_code = pure_words + " " + last_word;
+  std::string time_limited_code = base::StrCat({pure_words, " ", last_word});
   return time_limited_code;
 }
 

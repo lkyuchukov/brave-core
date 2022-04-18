@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "base/strings/strcat.h"
 #include "base/test/gtest_util.h"
 #include "base/time/time_override.h"
 #include "testing/gtest/include/gtest/gtest.h"
@@ -61,11 +62,11 @@ TEST(TimeLimitedWordsTest, GetWordByIndex) {
 }
 
 TEST(TimeLimitedWordsTest, GenerateForDate) {
-  EXPECT_EQ(std::string(kValidSyncCode) + " abandon",
+  EXPECT_EQ(base::StrCat({kValidSyncCode, " abandon"}),
             TimeLimitedWords::GenerateForDate(
                 kValidSyncCode, TimeLimitedWords::GetWordsV2Epoch()));
   EXPECT_EQ(
-      std::string(kValidSyncCode) + " ability",
+      base::StrCat({kValidSyncCode, " ability"}),
       TimeLimitedWords::GenerateForDate(
           kValidSyncCode, TimeLimitedWords::GetWordsV2Epoch() + base::Days(1)));
   EXPECT_EQ("", TimeLimitedWords::GenerateForDate(
@@ -90,7 +91,7 @@ TEST(TimeLimitedWordsTest, Validate) {
     // Valid v1 sync code plus ending space, prior to sunset date
     auto time_override = OverrideWithTimeNow(
         TimeLimitedWords::GetWordsV1SunsetDay() - base::Days(1));
-    result = TimeLimitedWords::Validate(kValidSyncCode + std::string(" "),
+    result = TimeLimitedWords::Validate(base::StrCat({kValidSyncCode, " "}),
                                         &pure_words);
     EXPECT_EQ(result, WordsValidationResult::kValid);
     EXPECT_EQ(pure_words, kValidSyncCode);
@@ -110,7 +111,7 @@ TEST(TimeLimitedWordsTest, Validate) {
   const std::string valid25thAnchoredWord =
       TimeLimitedWords::GetWordByIndex(20);
   const std::string valid25thAnchoredWords =
-      kValidSyncCode + std::string(" ") + valid25thAnchoredWord;
+      base::StrCat({kValidSyncCode, " ", valid25thAnchoredWord});
 
   {
     // Valid v2 sync code, after sunset date, around anchored day
@@ -125,7 +126,7 @@ TEST(TimeLimitedWordsTest, Validate) {
     const std::string valid25thExpiredWord =
         TimeLimitedWords::GetWordByIndex(15);
     const std::string valid25thExpiredWords =
-        kValidSyncCode + std::string(" ") + valid25thExpiredWord;
+        base::StrCat({kValidSyncCode, " ", valid25thExpiredWord});
 
     auto time_override = OverrideWithTimeNow(anchorDayForWordsV2);
     result = TimeLimitedWords::Validate(valid25thExpiredWords, &pure_words);
@@ -138,7 +139,7 @@ TEST(TimeLimitedWordsTest, Validate) {
     const std::string valid25thValidTooLongWord =
         TimeLimitedWords::GetWordByIndex(25);
     const std::string valid25thValidTooLongWords =
-        kValidSyncCode + std::string(" ") + valid25thValidTooLongWord;
+        base::StrCat({kValidSyncCode, " ", valid25thValidTooLongWord});
 
     auto time_override = OverrideWithTimeNow(anchorDayForWordsV2);
     result =
@@ -155,7 +156,8 @@ TEST(TimeLimitedWordsTest, Validate) {
     EXPECT_EQ(pure_words, "");
 
     result = TimeLimitedWords::Validate(
-        valid25thAnchoredWords + " abandon ability", &pure_words);
+        base::StrCat({valid25thAnchoredWords, " abandon ability"}),
+        &pure_words);
     EXPECT_EQ(result, WordsValidationResult::kWrongWordsNumber);
     EXPECT_EQ(pure_words, "");
   }
@@ -169,7 +171,7 @@ TEST(TimeLimitedWordsTest, Validate) {
     const std::string validModulo2048Word =
         TimeLimitedWords::GetWordByIndex(2048);
     const std::string validModulo2048Words =
-        kValidSyncCode + std::string(" ") + validModulo2048Word;
+        base::StrCat({kValidSyncCode, " ", validModulo2048Word});
 
     auto time_override = OverrideWithTimeNow(
         TimeLimitedWords::GetWordsV2Epoch() + base::Days(2048));
