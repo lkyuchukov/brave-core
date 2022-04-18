@@ -7,7 +7,6 @@
 
 #include <memory>
 
-#include "base/logging.h"
 #include "base/test/gtest_util.h"
 #include "base/time/time_override.h"
 #include "testing/gtest/include/gtest/gtest.h"
