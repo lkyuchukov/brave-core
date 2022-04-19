@@ -29,7 +29,9 @@ import {
   WalletState
 } from '../constants/types'
 import BuySendSwap from '../stories/screens/buy-send-swap'
-import Onboarding from '../stories/screens/onboarding'
+// import Onboarding from '../stories/screens/onboarding'
+import { OnboardingWelcome } from './screens/onboarding'
+import { OnboardingCreatePassword } from './screens/onboarding/create-password/onboarding-create-password'
 import BackupWallet from '../stories/screens/backup-wallet'
 import { SweepstakesBanner } from '../components/desktop/sweepstakes-banner'
 
@@ -269,6 +271,7 @@ function Container (props: Props) {
       WalletRoutes.AddAccountModal,
       WalletRoutes.AddAssetModal,
       WalletRoutes.Portfolio,
+      `${WalletRoutes.Onboarding}/create-password`,
       ...acceptedPortfolioRoutes,
       ...acceptedAccountRoutes
     ]
@@ -281,11 +284,19 @@ function Container (props: Props) {
       return
     }
     // If wallet is not yet created will Route to Onboarding
-    if ((!isWalletCreated || setupStillInProgress) && walletLocation !== WalletRoutes.Restore) {
+    if (
+      (!isWalletCreated || setupStillInProgress) &&
+      walletLocation !== WalletRoutes.Restore &&
+      !walletLocation?.includes(WalletRoutes.Onboarding)
+    ) {
       checkWalletsToImport()
       history.push(WalletRoutes.Onboarding)
       // If wallet is created will Route to login
-    } else if (isWalletLocked && walletLocation !== WalletRoutes.Restore) {
+    } else if (
+      isWalletLocked &&
+      walletLocation !== WalletRoutes.Restore &&
+      !walletLocation?.includes(WalletRoutes.Onboarding)
+    ) {
       history.push(WalletRoutes.Unlock)
       // Allowed Private Routes if a wallet is unlocked else will redirect back to Portfolio
     } else if (
@@ -338,8 +349,14 @@ function Container (props: Props) {
             }
           </Route>
           <Route path={WalletRoutes.Onboarding} exact={true}>
-            <Onboarding />
+            {/* <Onboarding /> */}
+            <OnboardingWelcome />
           </Route>
+
+          <Route path={`${WalletRoutes.Onboarding}/create-password`} exact={true}>
+            <OnboardingCreatePassword />
+          </Route>
+
           <Route path={WalletRoutes.Unlock} exact={true}>
             {isWalletLocked &&
               <OnboardingWrapper>

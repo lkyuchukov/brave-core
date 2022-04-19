@@ -87,14 +87,17 @@ provideStrings({
 
   // Buttons
   braveWalletButtonContinue: 'Continue',
+  braveWalletButtonNext: 'Next',
   braveWalletButtonCopy: 'Copy',
   braveWalletButtonCopied: 'Copied',
   braveWalletButtonVerify: 'Verify',
 
   // Wallet Onboarding Welcome
   braveWalletWelcomeTitle: 'Welcome to the new Brave Wallet',
-  braveWalletWelcomeDescription: 'Hold crypto assets in your custody. Track portfolio performance, and interact with web 3 DApps. Trade, invest, borrow, and lend with DeFi. All right from the Brave privacy browser. No extensions, no download required.',
-  braveWalletWelcomeButton: 'Get Started',
+  braveWalletWelcomeDescription: 'Hold your crypto in your custody. Trade assets, and interact with Web3 Apps. Track your portfolio performance, invest, borrow, and lend with DeFi.',
+  braveWalletWelcomeButton: 'Create a new wallet',
+  braveWalletWhatIsACryptoWallet: 'What’s a crypto wallet?',
+  braveWalletWelcomeIAlreadyHaveAWallet: 'I already have a wallet',
   braveWalletWelcomeRestoreButton: 'Restore',
 
   // Backup Wallet Intro
@@ -118,8 +121,8 @@ provideStrings({
   braveWalletVerifyError: 'Recovery phrase did not match, please try again.',
 
   // Create Password
-  braveWalletCreatePasswordTitle: 'Secure your crypto assets with a password',
-  braveWalletCreatePasswordDescription: 'Passwords must be at least 7 characters, and contain at least one number and one special character.',
+  braveWalletCreatePasswordTitle: 'Create a new password',
+  braveWalletCreatePasswordDescription: 'You will need to enter the password to access your wallet from your Browser.',
   braveWalletCreatePasswordInput: 'Password',
   braveWalletConfirmPasswordInput: 'Confirm password',
   braveWalletCreatePasswordError: 'Password criteria doesn\'t match.',

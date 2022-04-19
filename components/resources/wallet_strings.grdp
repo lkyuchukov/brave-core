@@ -94,13 +94,15 @@
   <message name="IDS_BRAVE_WALLET_SWAP_FEES_NOTICE" desc="Swap fees notice">Quote includes a 0.875% Brave fee.</message>
   <message name="IDS_BRAVE_WALLET_DECIMAL_PLACES_ERROR" desc="Amount decimal places error">Too many decimal places</message>
   <message name="IDS_BRAVE_WALLET_BUTTON_CONTINUE" desc="General Continue button">Continue</message>
+  <message name="IDS_BRAVE_WALLET_BUTTON_NEXT" desc="General Next button">Next</message>
   <message name="IDS_BRAVE_WALLET_BUTTON_COPY" desc="General Copy button">Copy</message>
   <message name="IDS_BRAVE_WALLET_BUTTON_COPIED" desc="Confirmation that text has been copied to clipboard">Copied</message>
   <message name="IDS_BRAVE_WALLET_BUTTON_VERIFY" desc="General Verify button">Verify</message>
   <message name="IDS_BRAVE_WALLET_WELCOME_TITLE" desc="Onboarding welcome screen title">Welcome to the new Brave Wallet</message>
   <message name="IDS_BRAVE_WALLET_WELCOME_DESCRIPTION" desc="Onboarding welcome screen description">Hold crypto assets in your custody. Track portfolio performance, and interact with web 3 DApps. Trade, invest, borrow, and lend with DeFi. All right from the Brave privacy browser. No extensions, no download required.</message>
-  <message name="IDS_BRAVE_WALLET_WELCOME_BUTTON" desc="Onboarding get started button">Get Started</message>
-  <message name="IDS_BRAVE_WALLET_WELCOME_RESTORE_BUTTON" desc="Restore screen button">Restore</message>
+  <message name="IDS_BRAVE_WALLET_WELCOME_BUTTON" desc="Onboarding get started button">Create a new wallet</message>
+  <message name="IDS_BRAVE_WALLET_WELCOME_RESTORE_BUTTON" desc="Restore wallet button">Restore</message>
+  <message name="IDS_BRAVE_WALLET_WELCOME_I_ALREADY_HAVE_A_WALLET" desc="Wallet onboarding welcome Restore wallet button">I already have a wallet</message>
   <message name="IDS_BRAVE_WALLET_BACKUP_INTRO_TITLE" desc="Backup screen title">Back up your crypto wallet</message>
   <message name="IDS_BRAVE_WALLET_BACKUP_INTRO_DESCRIPTION" desc="Backup screen description">In the next step you’ll see a <ph name="RECOVERY_PHRASE_LENGTH">$1</ph>-word recovery phrase, which you can use to recover your primary crypto accounts. Save it someplace safe. Your recovery phrase is the only way to regain account access in case of forgotten password, lost or stolen device, or you want to switch wallets.</message>
   <message name="IDS_BRAVE_WALLET_BACKUP_INTRO_TERMS" desc="Backup screen terms check box">I understand that if I lose my recovery words, I will not be able to access my crypto wallet.</message>
@@ -115,8 +117,8 @@
   <message name="IDS_BRAVE_WALLET_VERIFY_RECOVERY_TITLE" desc="Verify Recovery screen title">Verify recovery phrase</message>
   <message name="IDS_BRAVE_WALLET_VERIFY_RECOVERY_DESCRIPTION" desc="Verify Recovery screen description">Select the words in your recovery phrase in their correct order.</message>
   <message name="IDS_BRAVE_WALLET_VERIFY_ERROR" desc="Verify Recovery screen error">Recovery phrase did not match, please try again.</message>
-  <message name="IDS_BRAVE_WALLET_CREATE_PASSWORD_TITLE" desc="Create Password screen title">Secure your crypto assets with a password</message>
-  <message name="IDS_BRAVE_WALLET_CREATE_PASSWORD_DESCRIPTION" desc="Create Password screen description">Passwords must be at least 7 characters, and contain at least one number and one special character.</message>
+  <message name="IDS_BRAVE_WALLET_CREATE_PASSWORD_TITLE" desc="Create Password screen title">Create a new password</message>
+  <message name="IDS_BRAVE_WALLET_CREATE_PASSWORD_DESCRIPTION" desc="Create Password screen description">You will need to enter the password to access your wallet from your Browser.</message>
   <message name="IDS_BRAVE_WALLET_CREATE_PASSWORD_INPUT" desc="Create Password screen password input">Password</message>
   <message name="IDS_BRAVE_WALLET_CONFIRM_PASSWORD_INPUT" desc="Create Password screen confirm password input">Confirm password</message>
   <message name="IDS_BRAVE_WALLET_CREATE_PASSWORD_ERROR" desc="Create Password screen password input error">Password criteria doesn't match.</message>
@@ -450,4 +452,5 @@
   </message>
   <message name="IDS_WALLET_FIL_SEND_TRANSACTION_TO" desc="Error message if transaction 'to' is empty">Transaction data 'to' must be specified</message>
   <message name="IDS_WALLET_FIL_SEND_TRANSACTION_FROM_INVALID" desc="Transaction data is not validated">Transaction data 'from' must be a valid Filecoin address</message>
+  <message name="IDS_BRAVE_WALLET_WHAT_IS_A_CRYPTO_WALLET" desc="Link to article explaining crypto wallets">What’s a crypto wallet?</message>
 </grit-part>

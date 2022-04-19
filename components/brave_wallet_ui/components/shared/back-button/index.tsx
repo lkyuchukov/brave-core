@@ -8,12 +8,19 @@ import {
 
 export interface Props {
   onSubmit: () => void
+  showBorder?: boolean
 }
 
 const BackButton = (props: Props) => {
-  const { onSubmit } = props
+  const { onSubmit, showBorder } = props
   return (
-    <StyledWrapper onClick={onSubmit}><BackIcon />{getLocale('braveWalletBack')}</StyledWrapper>
+    <StyledWrapper
+      showBorder={showBorder}
+      onClick={onSubmit}
+    >
+      <BackIcon />
+      {getLocale('braveWalletBack')}
+    </StyledWrapper>
   )
 }
 export default BackButton

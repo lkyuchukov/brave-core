@@ -102,6 +102,7 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
     {"braveWalletSwapFeesNotice", IDS_BRAVE_WALLET_SWAP_FEES_NOTICE},
     {"braveWalletDecimalPlacesError", IDS_BRAVE_WALLET_DECIMAL_PLACES_ERROR},
     {"braveWalletButtonContinue", IDS_BRAVE_WALLET_BUTTON_CONTINUE},
+    {"braveWalletButtonNext", IDS_BRAVE_WALLET_BUTTON_NEXT},
     {"braveWalletButtonCopy", IDS_BRAVE_WALLET_BUTTON_COPY},
     {"braveWalletButtonCopied", IDS_BRAVE_WALLET_BUTTON_COPIED},
     {"braveWalletButtonVerify", IDS_BRAVE_WALLET_BUTTON_VERIFY},
@@ -110,6 +111,8 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
     {"braveWalletWelcomeButton", IDS_BRAVE_WALLET_WELCOME_BUTTON},
     {"braveWalletWelcomeRestoreButton",
      IDS_BRAVE_WALLET_WELCOME_RESTORE_BUTTON},
+    {"braveWalletWelcomeIAlreadyHaveAWallet",
+     IDS_BRAVE_WALLET_WELCOME_I_ALREADY_HAVE_A_WALLET},
     {"braveWalletBackupIntroTitle", IDS_BRAVE_WALLET_BACKUP_INTRO_TITLE},
     {"braveWalletBackupIntroDescription",
      IDS_BRAVE_WALLET_BACKUP_INTRO_DESCRIPTION},
@@ -602,7 +605,9 @@ constexpr webui::LocalizedString kLocalizedStrings[] = {
     {"braveWalletNetworkFilterAll", IDS_BRAVE_WALLET_NETWORK_FILTER_ALL},
     {"braveWalletEditGasLimitError", IDS_BRAVE_WALLET_EDIT_GAS_LIMIT_ERROR},
     {"braveWalletNetworkFilterSecondary",
-     IDS_BRAVE_WALLET_NETWORK_FILTER_SECONDARY}};
+     IDS_BRAVE_WALLET_NETWORK_FILTER_SECONDARY},
+    {"braveWalletWhatIsACryptoWallet",
+     IDS_BRAVE_WALLET_WHAT_IS_A_CRYPTO_WALLET}};
 
 // Swap constants
 const char kRopstenSwapBaseAPIURL[] = "https://ropsten.api.0x.org/";

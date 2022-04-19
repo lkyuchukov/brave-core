@@ -15,19 +15,21 @@ import useTokenInfo from './token'
 import useExplorer from './explorer'
 import useAssetManagement from './assets-management'
 import { useLib } from './useLib'
+import { usePasswordStrength } from './use-password-strength'
 
 export {
-  useAssets,
-  useSwap,
-  useBalance,
-  useTransactionParser,
-  useTransactionFeesParser,
-  usePricing,
   useAddressLabels,
-  useSend,
-  usePreset,
-  useTokenInfo,
-  useExplorer,
   useAssetManagement,
-  useLib
+  useAssets,
+  useBalance,
+  useExplorer,
+  useLib,
+  usePasswordStrength,
+  usePreset,
+  usePricing,
+  useSend,
+  useSwap,
+  useTokenInfo,
+  useTransactionFeesParser,
+  useTransactionParser
 }
