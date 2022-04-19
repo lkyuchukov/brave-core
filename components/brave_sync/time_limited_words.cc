@@ -201,6 +201,8 @@ TimeLimitedWords::PureWordsWithStatus TimeLimitedWords::Parse(
 
   if (ret.status == WordsValidationStatus::kValid) {
     ret.pure_words = pure_words;
+  } else {
+    ret.pure_words = absl::nullopt;
   }
 
   return ret;
