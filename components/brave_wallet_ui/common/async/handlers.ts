@@ -204,15 +204,22 @@ handler.on(WalletActions.chainChangedEvent.getType(), async (store: Store, paylo
 })
 
 handler.on(WalletActions.selectNetwork.getType(), async (store: Store, payload: BraveWallet.NetworkInfo) => {
-  const jsonRpcService = getAPIProxy().jsonRpcService
-  await jsonRpcService.setNetwork(payload.chainId, payload.coin)
-  store.dispatch(WalletActions.setNetwork(payload))
+  if (payload) {
+    const jsonRpcService = getAPIProxy().jsonRpcService
+    await jsonRpcService.setNetwork(payload.chainId, payload.coin)
+    store.dispatch(WalletActions.setNetwork(payload))
+  }
 })
 
 handler.on(WalletActions.selectAccount.getType(), async (store: Store, payload: WalletAccountType) => {
   const { keyringService } = getAPIProxy()
   const state = getWalletState(store)
   const { defaultNetworks } = state
+
+  if (!(defaultNetworks.length > 0)) {
+    return
+  }
+
   const defaultCoinTypesNetwork = defaultNetworks.find((network) => network.coin === payload.coin) ?? defaultNetworks[0]
   await keyringService.setSelectedAccount(payload.address, payload.coin)
   store.dispatch(WalletActions.setNetwork(defaultCoinTypesNetwork))

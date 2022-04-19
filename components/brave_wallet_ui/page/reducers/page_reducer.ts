@@ -166,6 +166,7 @@ export const createPageReducer = (initialState: PageState) => {
       isMetaMaskInitialized: payload
     }
   })
+
   return reducer
 }
 
