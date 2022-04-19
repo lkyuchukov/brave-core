@@ -8,10 +8,12 @@
 #include <string>
 
 #include "base/bind.h"
+#include "base/containers/flat_map.h"
 #include "base/numerics/safe_conversions.h"
 #include "base/sequence_checker.h"
 #include "base/strings/stringprintf.h"
 #include "base/time/time.h"
+#include "brave/components/brave_federated/public/interfaces/brave_federated.mojom.h"
 #include "sql/recovery.h"
 #include "sql/statement.h"
 #include "sql/transaction.h"
@@ -44,6 +46,18 @@ void DatabaseErrorCallback(sql::Database* db,
     DLOG(FATAL) << db->GetErrorMessage();
 }
 
+void BindCovariateToStatement(
+    const brave_federated::mojom::Covariate& covariate,
+    int training_instance_id,
+    base::Time created_at,
+    sql::Statement* s) {
+  s->BindInt64(0, training_instance_id);
+  s->BindInt64(1, static_cast<int>(covariate.covariate_type));
+  s->BindInt64(2, static_cast<int>(covariate.data_type));
+  s->BindString(3, covariate.value);
+  s->BindInt64(4, created_at.ToInternalValue());
+}
+
 }  // namespace
 
 namespace brave_federated {
@@ -51,6 +65,8 @@ namespace brave_federated {
 DataStore::DataStore(const base::FilePath& database_path)
     : db_({.exclusive_locking = true, .page_size = 4096, .cache_size = 500}),
       database_path_(database_path) {}
+
+DataStore::~DataStore() {}
 
 bool DataStore::Init(int task_id,
                      const std::string& task_name,
@@ -73,9 +89,56 @@ bool DataStore::Init(int task_id,
   return db_.Open(database_path_) && EnsureTable();
 }
 
-DataStore::~DataStore() {}
+void DataStore::AddTrainingInstance(const mojom::TrainingInstancePtr training_instance) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  int training_instance_id = 0; //TODO: How do we determine this on each Log? Read then write
+  base::Time created_at = base::Time::Now();
 
-bool DataStore::DeleteLogs() {
+  for (const auto& covariate : training_instance->covariates) {
+    sql::Statement s(db_.GetUniqueStatement(
+      base::StringPrintf(
+          "INSERT INTO %s (id, training_instance_id, feature_name, feature_type, feature_value, created_at) "
+          "VALUES (?,?,?,?,?,?)",
+          task_name_.c_str())
+          .c_str()));
+    
+    BindCovariateToStatement(*covariate, training_instance_id, created_at, &s);
+    s.Run(); //TODO: might want to do something with the success result
+  }
+}
+
+base::flat_map<int, std::vector<mojom::Covariate>> DataStore::LoadTrainingData() {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+  
+  base::flat_map<int, std::vector<mojom::Covariate>> training_instances;
+  sql::Statement s(db_.GetUniqueStatement(
+      base::StringPrintf("SELECT id, time, locale, number_of_tabs, label, "
+                         "creation_date FROM %s",
+                         task_name_.c_str())
+          .c_str()));
+
+  training_instances.clear();
+  while (s.Step()) { 
+    // int id = s.ColumnInt(0);
+    int training_instance_id = s.ColumnInt(1);
+    mojom::CovariatePtr covariate = mojom::Covariate::New();
+    covariate->covariate_type = (mojom::CovariateType) s.ColumnInt(2);
+    covariate->data_type = (mojom::DataType) s.ColumnInt(3);
+    covariate->value = s.ColumnString(4);
+
+    if (training_instances.find(training_instance_id) != training_instances.end()) {
+      std::vector<mojom::Covariate> covariates = {};
+      covariates.push_back(*covariate);
+      training_instances.insert(std::make_pair(training_instance_id, covariates));
+    } else {
+      training_instances[training_instance_id].push_back(*covariate);
+    }
+  }
+
+  return training_instances;
+}
+
+bool DataStore::DeleteTrainingData() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
 
   if (!db_.Execute(
@@ -90,7 +153,7 @@ void DataStore::EnforceRetentionPolicy() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
 
   sql::Statement s(db_.GetUniqueStatement(
-      base::StringPrintf(" DELETE FROM %s WHERE creation_date < ? OR id NOT IN "
+      base::StringPrintf(" DELETE FROM %s WHERE created_at < ? OR id NOT IN "
                          "(SELECT id FROM %s ORDER BY id DESC LIMIT ?)",
                          task_name_.c_str(), task_name_.c_str())
           .c_str()));
@@ -102,7 +165,19 @@ void DataStore::EnforceRetentionPolicy() {
 }
 
 bool DataStore::EnsureTable() {
-  return false;
+  if (db_.DoesTableExist(task_name_))
+    return true;
+
+  sql::Transaction transaction(&db_);
+  return transaction.Begin() &&
+         db_.Execute(
+             base::StringPrintf(
+                 "CREATE TABLE %s (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                 "training_instance_id INTEGER, feature_name INTEGER, feature_type INTEGER, "
+                 "feature_value TEXT, created_at INTEGER)",
+                 task_name_.c_str())
+                 .c_str()) &&
+         transaction.Commit();
 }
 
 }  // namespace brave_federated

@@ -45,12 +45,12 @@ class AsyncDataStore {
         .Then(std::move(callback));
   }
 
-  void AddLog(const U& log, base::OnceCallback<void(bool)> callback) {
-    data_store_.AsyncCall(&T::AddLog).WithArgs(log).Then(std::move(callback));
+  void AddTrainingInstance(const U& log, base::OnceCallback<void(bool)> callback) {
+    data_store_.AsyncCall(&T::AddTrainingInstance).WithArgs(log).Then(std::move(callback));
   }
 
   void LoadLogs(base::OnceCallback<void(base::flat_map<int, U>)> callback) {
-    data_store_.AsyncCall(&T::LoadLogs).Then(std::move(callback));
+    data_store_.AsyncCall(&T::LoadTrainingData).Then(std::move(callback));
   }
 
   void EnforceRetentionPolicy() {

@@ -15,18 +15,6 @@
 
 namespace brave_federated {
 
-// Log Definition --------------------------------------------------------
-struct TestTaskLog {
-  TestTaskLog(const int id, const bool label, const base::Time& creation_date);
-  TestTaskLog(const TestTaskLog& other);
-  TestTaskLog();
-  ~TestTaskLog();
-
-  int id;
-  bool label;
-  base::Time creation_date;
-};
-
 class TestDataStore final : public DataStore {
  public:
   explicit TestDataStore(const base::FilePath& database_path);
@@ -44,10 +32,8 @@ class TestDataStore final : public DataStore {
   void EnforceRetentionPolicy();
 
   using DataStore::DeleteLogs;
-
-  bool AddLog(const TestTaskLog& log);
-  void LoadLogs(TestTaskLogMap* test_task_logs);
-  bool EnsureTable() override;
+  using DataStore::LogTrainingInstance;
+  using DataStore::LoadLogs;
 };
 
 }  // namespace brave_federated

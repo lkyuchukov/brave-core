@@ -12,6 +12,7 @@
 #include "base/files/file_path.h"
 #include "base/gtest_prod_util.h"
 #include "base/sequence_checker.h"
+#include "brave/components/brave_federated/public/interfaces/brave_federated.mojom.h"
 #include "sql/database.h"
 
 namespace brave_federated {
@@ -30,7 +31,10 @@ class DataStore {
             const std::string& task_name,
             int max_number_of_records,
             int max_retention_days);
-  bool DeleteLogs();
+
+  void AddTrainingInstance(const mojom::TrainingInstancePtr training_instance);
+  bool DeleteTrainingData();
+  base::flat_map<int, std::vector<mojom::Covariate>> LoadTrainingData();
   void EnforceRetentionPolicy();
 
   virtual ~DataStore();
@@ -50,7 +54,7 @@ class DataStore {
   int max_retention_days_;
 
  private:
-  virtual bool EnsureTable();
+  bool EnsureTable();
 
   SEQUENCE_CHECKER(sequence_checker_);
 };
