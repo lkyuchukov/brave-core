@@ -31,6 +31,17 @@ static constexpr char kWordsv2Epoch[] = "Fri, 15 Apr 2022 00:00:00 GMT";
 
 }  // namespace
 
+TimeLimitedWords::PureWordsWithStatus::PureWordsWithStatus() = default;
+
+TimeLimitedWords::PureWordsWithStatus::PureWordsWithStatus(
+    PureWordsWithStatus&& other) = default;
+
+TimeLimitedWords::PureWordsWithStatus::~PureWordsWithStatus() = default;
+
+TimeLimitedWords::PureWordsWithStatus&
+TimeLimitedWords::PureWordsWithStatus::operator=(PureWordsWithStatus&& other) =
+    default;
+
 using base::Time;
 using base::TimeDelta;
 
@@ -122,7 +133,7 @@ std::string TimeLimitedWords::GenerateForDate(const std::string& pure_words,
   return time_limited_code;
 }
 
-WordsValidationResult TimeLimitedWords::Validate(
+WordsValidationStatus TimeLimitedWords::Validate(
     const std::string& time_limited_words,
     std::string* pure_words) {
   CHECK_NE(pure_words, nullptr);
@@ -145,12 +156,12 @@ WordsValidationResult TimeLimitedWords::Validate(
           base::span<std::string>(words.begin(), kPureWordsCount), " ");
       if (crypto::IsPassphraseValid(recombined_pure_words)) {
         *pure_words = recombined_pure_words;
-        return WordsValidationResult::kValid;
+        return WordsValidationStatus::kValid;
       } else {
-        return WordsValidationResult::kNotValidPureWords;
+        return WordsValidationStatus::kNotValidPureWords;
       }
     } else {
-      return WordsValidationResult::kVersionDeprecated;
+      return WordsValidationStatus::kVersionDeprecated;
     }
   } else if (num_words == kWordsV2Count) {
     std::string recombined_pure_words = base::JoinString(
@@ -165,21 +176,34 @@ WordsValidationResult TimeLimitedWords::Validate(
       int days_abs_diff = std::abs(days_actual - days_encoded);
       if (days_abs_diff <= 1) {
         *pure_words = recombined_pure_words;
-        return WordsValidationResult::kValid;
+        return WordsValidationStatus::kValid;
       } else if (days_actual > days_encoded) {
-        return WordsValidationResult::kExpired;
+        return WordsValidationStatus::kExpired;
       } else if (days_encoded > days_actual) {
-        return WordsValidationResult::kValidForTooLong;
+        return WordsValidationStatus::kValidForTooLong;
       }
     } else {
-      return WordsValidationResult::kNotValidPureWords;
+      return WordsValidationStatus::kNotValidPureWords;
     }
   } else {
-    return WordsValidationResult::kWrongWordsNumber;
+    return WordsValidationStatus::kWrongWordsNumber;
   }
 
   NOTREACHED();
-  return WordsValidationResult::kNotValidPureWords;
+  return WordsValidationStatus::kNotValidPureWords;
+}
+
+TimeLimitedWords::PureWordsWithStatus TimeLimitedWords::Parse(
+    const std::string& time_limited_words) {
+  PureWordsWithStatus ret;
+  std::string pure_words;
+  ret.status = Validate(time_limited_words, &pure_words);
+
+  if (ret.status == WordsValidationStatus::kValid) {
+    ret.pure_words = pure_words;
+  }
+
+  return ret;
 }
 
 }  // namespace brave_sync
