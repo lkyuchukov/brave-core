@@ -1635,7 +1635,8 @@ void JsonRpcService::OnGetERC721TokenUri(
   }
 
   if (scheme == ipfs::kIPFSScheme &&
-      !ipfs::ToConfiguredGatewayURL(&url, prefs_)) {
+      !ipfs::TranslateIPFSURI(url, &url, ipfs::GetDefaultIPFSGateway(prefs_),
+                              false)) {
     std::move(callback).Run("", mojom::ProviderError::kParsingError,
                             l10n_util::GetStringUTF8(IDS_WALLET_PARSING_ERROR));
     return;
