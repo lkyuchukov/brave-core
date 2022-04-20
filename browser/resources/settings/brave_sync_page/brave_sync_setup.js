@@ -86,7 +86,6 @@ Polymer({
   },
 
   submitSyncCode_: async function () {
-    console.log('submitSyncCode_ 000')
     this.isSubmittingSyncCode_ = true
     const syncCodeToSubmit = this.syncCode || ''
     let success = false
