@@ -257,7 +257,7 @@ bool ParseUnstoppableDomainsProxyReaderGet(const std::string& json,
   return ParseStringResult(json, value);
 }
 
-bool ParseERC721TokenUri(const std::string& json, GURL* url) {
+bool ParseTokenUri(const std::string& json, GURL* url) {
   std::string result;
   if (!ParseStringResult(json, &result)) {
     return false;
