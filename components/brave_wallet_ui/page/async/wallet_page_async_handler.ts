@@ -8,6 +8,7 @@ import * as WalletPageActions from '../actions/wallet_page_actions'
 import * as WalletActions from '../../common/actions/wallet_actions'
 import {
   BraveWallet,
+  NFTMetadataReturnType,
   UpdateAccountNamePayloadType,
   WalletState
 } from '../../constants/types'
@@ -32,6 +33,7 @@ import { NewUnapprovedTxAdded } from '../../common/constants/action_types'
 import { Store } from '../../common/async/types'
 import { getTokenParam } from '../../utils/api-utils'
 import getAPIProxy from '../../common/async/bridge'
+import { getTokensNetwork } from '../../utils/network-utils'
 
 const handler = new AsyncActionHandler()
 
@@ -231,10 +233,35 @@ handler.on(WalletPageActions.openWalletSettings.getType(), async (store) => {
 })
 
 handler.on(WalletPageActions.getNFTMetadata.getType(), async (store, payload: BraveWallet.BlockchainToken) => {
-  console.log(payload)
+  store.dispatch(WalletPageActions.setIsFetchingNFTMetadata(true))
   const jsonRpcService = getAPIProxy().jsonRpcService
-  const nftMetadata = await jsonRpcService.getERC721Metadata(payload.contractAddress, payload.tokenId, payload.chainId)
-  console.log(nftMetadata)
+  const result = await jsonRpcService.getERC721Metadata(payload.contractAddress, payload.tokenId, payload.chainId)
+
+  if (!result.error) {
+    const response = JSON.parse(result.response)
+    const tokenNetwork = getTokensNetwork(getWalletState(store).networkList, payload)
+    const nftMetadata: NFTMetadataReturnType = {
+      chainName: tokenNetwork.chainName,
+      tokenType: 'ERC721', // getNFTMetadata currently supports only ERC721 standard. When other standards are supported, this value should be dynamic
+      tokenID: payload.tokenId,
+      imageURL: `chrome://image/?${response.image.includes('ipfs://') ? response.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : response.image}`,
+      floorFiatPrice: '',
+      floorCryptoPrice: '',
+      contractInformation: {
+        address: payload.contractAddress,
+        name: response.name,
+        description: response.description,
+        website: '',
+        twitter: '',
+        facebook: '',
+        logo: ''
+      }
+    }
+    store.dispatch(WalletPageActions.updateNFTMetadata(nftMetadata))
+  } else {
+    console.error(result.errorMessage)
+  }
+  store.dispatch(WalletPageActions.setIsFetchingNFTMetadata(false))
 })
 
 export default handler.middleware
