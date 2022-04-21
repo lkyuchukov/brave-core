@@ -6,9 +6,11 @@ import { getTabData, onTabData } from '../api/tabs_api'
 
 chrome.tabs.onUpdated.addListener((tabId: number, changeInfo: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
   const activeTabIsLoadingTriggered = Boolean(tab.active && changeInfo.status === 'loading')
+  console.error('zenparsing: tabs.onUpdated (' + changeInfo.status + ')')
   onTabData(tab, activeTabIsLoadingTriggered)
 })
 
 chrome.tabs.onActivated.addListener((activeInfo: chrome.tabs.TabActiveInfo) => {
+  console.error('zenparsing: tabs.onActivated')
   getTabData(activeInfo.tabId)
 })

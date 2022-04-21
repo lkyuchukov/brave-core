@@ -12,8 +12,6 @@ import batIconOn18Url from './img/rewards-on.png'
 import batIconOn36Url from './img/rewards-on@2x.png'
 import batIconOn54Url from './img/rewards-on@3x.png'
 
-const braveExtensionId = 'mnojpmjdmbbfmejpflffifhffcmidifd'
-
 const iconOn = {
   path: {
     18: batIconOn18Url,
@@ -38,51 +36,4 @@ chrome.tabs.query({
   }
 
   rewardsPanelActions.init(tabs)
-})
-
-chrome.runtime.onStartup.addListener(function () {
-  chrome.runtime.onConnect.addListener(function (externalPort) {
-    chrome.storage.local.set({
-      'rewards_panel_open': 'true'
-    })
-
-    externalPort.onDisconnect.addListener(function () {
-      chrome.storage.local.set({
-        'rewards_panel_open': 'false'
-      })
-    })
-  })
-})
-
-chrome.runtime.onMessageExternal.addListener(
-  function (msg: any, sender: chrome.runtime.MessageSender, sendResponse: any) {
-    if (!msg) {
-      return
-    }
-    if (!sender || !sender.id || sender.id !== braveExtensionId) {
-      return
-    }
-    switch (msg.type) {
-      case 'OnPublisherData':
-        rewardsPanelActions.onPublisherData(msg.tabId, msg.info)
-        break
-    }
-  })
-
-chrome.runtime.onConnect.addListener(function (port) {
-  if (port.name === 'request-enable-rewards-panel') {
-    let adsEnabled = false
-    port.onMessage.addListener(function () {
-      // Ignore any calls made after the first one
-      if (!adsEnabled) {
-        adsEnabled = true
-        chrome.braveRewards.requestAdsEnabledPopupClosed(true)
-      }
-    })
-    port.onDisconnect.addListener(function () {
-      if (!adsEnabled) {
-        chrome.braveRewards.requestAdsEnabledPopupClosed(false)
-      }
-    })
-  }
 })

@@ -13,7 +13,10 @@
 #include "base/bind.h"
 #include "base/strings/string_number_conversions.h"
 #include "brave/browser/brave_ads/ads_service_factory.h"
+#include "brave/browser/brave_rewards/rewards_panel_service.h"
+#include "brave/browser/brave_rewards/rewards_panel_service_factory.h"
 #include "brave/browser/brave_rewards/rewards_service_factory.h"
+#include "brave/browser/brave_rewards/rewards_tab_helper.h"
 #include "brave/browser/brave_rewards/tip_dialog.h"
 #include "brave/browser/extensions/api/brave_action_api.h"
 #include "brave/browser/extensions/brave_component_loader.h"
@@ -40,6 +43,7 @@
 
 using brave_ads::AdsService;
 using brave_ads::AdsServiceFactory;
+using brave_rewards::RewardsPanelServiceFactory;
 using brave_rewards::RewardsService;
 using brave_rewards::RewardsServiceFactory;
 
@@ -50,6 +54,27 @@ const char kShouldAllowAdsSubdivisionTargeting[] =
 const char kAdsSubdivisionTargeting[] = "adsSubdivisionTargeting";
 const char kAutoDetectedAdsSubdivisionTargeting[] =
     "automaticallyDetectedAdsSubdivisionTargeting";
+
+content::WebContents* GetWebContentsForTabId(
+    int tab_id,
+    content::BrowserContext* browser_context) {
+  DCHECK(browser_context);
+  content::WebContents* contents = nullptr;
+  bool found = extensions::ExtensionTabUtil::GetTabById(
+      tab_id, browser_context, false, nullptr, nullptr, &contents, nullptr);
+  return found ? contents : nullptr;
+}
+
+brave_rewards::RewardsTabHelper* GetRewardsTabHelperForTabId(
+    int tab_id,
+    content::BrowserContext* browser_context) {
+  DCHECK(browser_context);
+  auto* web_contents = GetWebContentsForTabId(tab_id, browser_context);
+  if (!web_contents) {
+    return nullptr;
+  }
+  return ::brave_rewards::RewardsTabHelper::FromWebContents(web_contents);
+}
 
 }  // namespace
 
@@ -63,41 +88,18 @@ ExtensionFunction::ResponseAction BraveRewardsGetLocaleFunction::Run() {
   return RespondNow(OneArgument(base::Value(std::move(locale))));
 }
 
-BraveRewardsOpenBrowserActionUIFunction::
-~BraveRewardsOpenBrowserActionUIFunction() {
-}
+BraveRewardsOpenRewardsPanelFunction::~BraveRewardsOpenRewardsPanelFunction() =
+    default;
 
-ExtensionFunction::ResponseAction
-BraveRewardsOpenBrowserActionUIFunction::Run() {
-  std::unique_ptr<brave_rewards::OpenBrowserActionUI::Params> params(
-      brave_rewards::OpenBrowserActionUI::Params::Create(args()));
+ExtensionFunction::ResponseAction BraveRewardsOpenRewardsPanelFunction::Run() {
+  auto params = brave_rewards::OpenRewardsPanel::Params::Create(args());
   EXTENSION_FUNCTION_VALIDATE(params.get());
 
   auto* profile = Profile::FromBrowserContext(browser_context());
-
-  // Start the rewards ledger process if it is not already started
-  auto* rewards_service = RewardsServiceFactory::GetForProfile(profile);
-  if (!rewards_service)
-    return RespondNow(Error("Rewards service is not initialized"));
-
-  rewards_service->StartProcess(base::DoNothing());
-
-  // Load the rewards extension if it is not already loaded
-  auto* extension_service =
-      extensions::ExtensionSystem::Get(profile)->extension_service();
-  if (!extension_service)
-    return RespondNow(Error("Extension service is not initialized"));
-
-  static_cast<BraveComponentLoader*>(extension_service->component_loader())
-      ->AddRewardsExtension();
-
-  std::string error;
-  if (!BraveActionAPI::ShowActionUI(this,
-      brave_rewards_extension_id,
-      std::move(params->window_id),
-      std::move(params->relative_path), &error)) {
-    return RespondNow(Error(error));
+  if (auto* service = RewardsPanelServiceFactory::GetForProfile(profile)) {
+    service->OpenRewardsPanel(params->args ? *params->args : "");
   }
+
   return RespondNow(NoArguments());
 }
 
@@ -173,6 +175,81 @@ void BraveRewardsGetPublisherInfoFunction::OnGetPublisherInfo(
   dict.SetStringKey("favIconUrl", info->favicon_url);
 
   Respond(TwoArguments(base::Value(static_cast<int>(result)), std::move(dict)));
+}
+
+BraveRewardsSetPublisherIdForTabFunction::
+    ~BraveRewardsSetPublisherIdForTabFunction() {}
+
+ExtensionFunction::ResponseAction
+BraveRewardsSetPublisherIdForTabFunction::Run() {
+  auto params = brave_rewards::SetPublisherIdForTab::Params::Create(args());
+  EXTENSION_FUNCTION_VALIDATE(params.get());
+
+  auto* tab_helper =
+      GetRewardsTabHelperForTabId(params->tab_id, browser_context());
+
+  if (tab_helper) {
+    tab_helper->SetPublisherIdForTab(params->publisher_id);
+  }
+
+  return RespondNow(NoArguments());
+}
+
+BraveRewardsGetPublisherInfoForTabFunction::
+    ~BraveRewardsGetPublisherInfoForTabFunction() {}
+
+ExtensionFunction::ResponseAction
+BraveRewardsGetPublisherInfoForTabFunction::Run() {
+  auto params = brave_rewards::GetPublisherInfoForTab::Params::Create(args());
+  EXTENSION_FUNCTION_VALIDATE(params.get());
+
+  auto* profile = Profile::FromBrowserContext(browser_context());
+
+  auto* rewards_service = RewardsServiceFactory::GetForProfile(profile);
+  if (!rewards_service) {
+    return RespondNow(NoArguments());
+  }
+
+  auto* tab_helper = GetRewardsTabHelperForTabId(params->tab_id, profile);
+  if (!tab_helper) {
+    return RespondNow(NoArguments());
+  }
+
+  std::string publisher_id = tab_helper->GetPublisherIdForTab();
+  if (publisher_id.empty()) {
+    return RespondNow(NoArguments());
+  }
+
+  rewards_service->GetPublisherPanelInfo(
+      publisher_id,
+      base::BindOnce(
+          &BraveRewardsGetPublisherInfoForTabFunction::OnGetPublisherPanelInfo,
+          this));
+
+  return RespondLater();
+}
+
+void BraveRewardsGetPublisherInfoForTabFunction::OnGetPublisherPanelInfo(
+    ledger::type::Result result,
+    ledger::type::PublisherInfoPtr info) {
+  if (!info) {
+    Respond(NoArguments());
+    return;
+  }
+
+  // TODO: We should really make this structure better.
+  base::Value dict(base::Value::Type::DICTIONARY);
+  dict.SetStringKey("publisherKey", info->id);
+  dict.SetStringKey("name", info->name);
+  dict.SetIntKey("percentage", info->percent);
+  dict.SetIntKey("status", static_cast<int>(info->status));
+  dict.SetBoolKey("excluded",
+                  info->excluded == ledger::type::PublisherExclude::EXCLUDED);
+  dict.SetStringKey("url", info->url);
+  dict.SetStringKey("provider", info->provider);
+  dict.SetStringKey("favIconUrl", info->favicon_url);
+
+  Respond(OneArgument(std::move(dict)));
 }
 
 BraveRewardsGetPublisherPanelInfoFunction::

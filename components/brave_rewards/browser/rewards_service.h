@@ -140,6 +140,8 @@ class RewardsService : public KeyedService {
   RewardsService& operator=(const RewardsService&) = delete;
   ~RewardsService() override;
 
+  static std::string GetPublisherIdFromURL(const GURL& url);
+
   virtual bool IsInitialized() = 0;
 
   virtual void CreateWallet(CreateWalletCallback callback) = 0;
@@ -281,6 +283,10 @@ class RewardsService : public KeyedService {
       const std::string& publisher_key,
       const uint64_t duration,
       const bool firstVisit) = 0;
+
+  virtual void IsPublisherRegistered(
+      const std::string& publisher_id,
+      base::OnceCallback<void(bool)> callback) = 0;
 
   virtual void GetPublisherInfo(
       const std::string& publisher_key,

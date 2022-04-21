@@ -6,9 +6,13 @@ import { Client, ClientState } from './interfaces'
 import { createStateManager } from '../../shared/lib/state_manager'
 
 const rewardsTourURL = 'brave_rewards_panel.html#tour'
+// TODO: Do we need to import this from somewhere else?
+const braveExtensionId = 'mnojpmjdmbbfmejpflffifhffcmidifd'
 
 export function createClient (): Client {
-  const port = chrome.runtime.connect({ name: 'request-enable-rewards-panel' })
+  const port = chrome.runtime.connect(braveExtensionId, {
+    name: 'request-enable-rewards-panel'
+  })
 
   const stateManager = createStateManager<ClientState>({
     loading: true,

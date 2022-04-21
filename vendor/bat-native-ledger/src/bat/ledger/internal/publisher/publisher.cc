@@ -133,6 +133,8 @@ void Publisher::SaveVisit(
     const bool first_visit,
     uint64_t window_id,
     const ledger::PublisherInfoCallback callback) {
+  LOG(ERROR) << "zenparsing: SaveVisit " << publisher_key;
+
   if (publisher_key.empty()) {
     BLOG(0, "Publisher key is empty");
     return;

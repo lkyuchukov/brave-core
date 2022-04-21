@@ -224,6 +224,7 @@ void LedgerImpl::OneTimeTip(const std::string& publisher_key,
 }
 
 void LedgerImpl::OnLoad(type::VisitDataPtr visit_data, uint64_t current_time) {
+  LOG(ERROR) << "LedgerImpl::OnLoad " << visit_data->tld;
   if (!IsReady() || !visit_data || visit_data->domain.empty()) {
     return;
   }
@@ -649,6 +650,13 @@ void LedgerImpl::UpdateMediaDuration(uint64_t window_id,
     publisher()->UpdateMediaDuration(window_id, publisher_key, duration,
                                      first_visit);
   });
+}
+
+void LedgerImpl::IsPublisherRegistered(
+    const std::string& publisher_id,
+    base::OnceCallback<void(bool)> callback) {
+  // TODO
+  std::move(callback).Run(false);
 }
 
 void LedgerImpl::GetPublisherInfo(const std::string& publisher_key,

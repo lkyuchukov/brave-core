@@ -16,7 +16,7 @@
 #include "brave/browser/profiles/profile_util.h"
 #include "brave/browser/ui/brave_actions/brave_action_view_controller.h"
 #include "brave/browser/ui/views/brave_actions/brave_action_view.h"
-#include "brave/browser/ui/views/brave_actions/brave_rewards_action_stub_view.h"
+#include "brave/browser/ui/views/brave_actions/brave_rewards_action_view.h"
 #include "brave/browser/ui/views/brave_actions/brave_shields_action_view.h"
 #include "brave/browser/ui/views/rounded_separator.h"
 #include "brave/common/brave_switches.h"
@@ -104,12 +104,12 @@ void BraveActionsContainer::Init() {
   // make sure separator is at index 0
   AddChildViewAt(brave_button_separator_, 0);
   AddActionViewForShields();
+  AddActionViewForRewards();
   // Populate actions
   if (base::FeatureList::IsEnabled(
           brave_shields::features::kBraveShieldsPanelV1)) {
     actions_[brave_extension_id].position_ = 1;
   }
-  actions_[brave_rewards_extension_id].position_ = ACTION_ANY_POSITION;
 
   // React to Brave Rewards preferences changes.
   show_brave_rewards_button_.Init(
@@ -168,23 +168,14 @@ void BraveActionsContainer::AddAction(const extensions::Extension* extension) {
     actions_[id].view_ = std::make_unique<BraveActionView>(
         actions_[id].view_controller_.get(), this);
     AttachAction(id);
-    // Handle if we are in a continuing pressed state for this extension.
-    if (is_rewards_pressed_ && id == brave_rewards_extension_id) {
-      is_rewards_pressed_ = false;
-      actions_[id].view_controller_->ExecuteUserAction(
-          ToolbarActionViewController::InvocationSource::kToolbarButton);
-    }
   }
 }
 
-void BraveActionsContainer::AddActionStubForRewards() {
-  const std::string id = brave_rewards_extension_id;
-  if (actions_[id].view_) {
-    return;
-  }
-  actions_[id].view_ = std::make_unique<BraveRewardsActionStubView>(
-      browser_->profile(), this);
-  AttachAction(id);
+void BraveActionsContainer::AddActionViewForRewards() {
+  auto button = std::make_unique<BraveRewardsActionView>(browser_);
+  rewards_action_btn_ = AddChildViewAt(std::move(button), 2);
+  rewards_action_btn_->SetPreferredSize(GetToolbarActionSize());
+  rewards_action_btn_->Update();
 }
 
 void BraveActionsContainer::AttachAction(const std::string& id) {
@@ -217,10 +208,6 @@ void BraveActionsContainer::AddAction(const std::string& id) {
       extension_registry_->enabled_extensions().GetByID(id);
   if (extension) {
     AddAction(extension);
-    return;
-  }
-  if (id == brave_rewards_extension_id) {
-    AddActionStubForRewards();
     return;
   }
   LOG(ERROR) << "Extension not found for Brave Action: " << id;
@@ -276,25 +263,45 @@ void BraveActionsContainer::AddActionViewForShields() {
 }
 
 void BraveActionsContainer::Update() {
-  // Update state of each action and also determine if there are any buttons to
-  // show
-  bool can_show = false;
-
   if (shields_action_btn_) {
     shields_action_btn_->Update();
+  }
+
+  if (rewards_action_btn_) {
+    rewards_action_btn_->Update();
+  }
+
+  for (auto& [_, value] : actions_) {
+    if (value.view_controller_) {
+      value.view_controller_->UpdateState();
+    }
+  }
+
+  UpdateVisibility();
+  Layout();
+}
+
+void BraveActionsContainer::UpdateVisibility() {
+  bool can_show = false;
+
+  // TODO(zenparsing): Can't we just iterate over children instead?
+  if (shields_action_btn_) {
     can_show = shields_action_btn_->GetVisible();
   }
 
-  for (auto const& pair : actions_) {
-    if (pair.second.view_controller_)
-      pair.second.view_controller_->UpdateState();
-    if (!can_show && pair.second.view_ && pair.second.view_->GetVisible())
-      can_show = true;
+  if (rewards_action_btn_) {
+    can_show = can_show || rewards_action_btn_->GetVisible();
   }
-  // only show separator if we're showing any buttons
-  const bool visible = !should_hide_ && can_show;
-  SetVisible(visible);
-  Layout();
+
+  for (auto& [_, value] : actions_) {
+    if (value.view_) {
+      can_show = can_show || value.view_->GetVisible();
+    }
+  }
+
+  // If no buttons are visible, then we want to hide this view so that the
+  // separator is not displayed.
+  SetVisible(!should_hide_ && can_show);
 }
 
 void BraveActionsContainer::SetShouldHide(bool should_hide) {
@@ -337,27 +344,6 @@ bool BraveActionsContainer::CanStartDragForView(View* sender,
   return false;
 }
 // end ToolbarActionView::Delegate members
-
-// BraveRewardsActionStubView::Delegate members
-void BraveActionsContainer::OnRewardsStubButtonClicked() {
-  // Keep button state visually pressed until new extension button
-  // takes over.
-  actions_[brave_rewards_extension_id].view_->SetState(
-      views::Button::STATE_PRESSED);
-  extensions::ExtensionService* service =
-           extension_system_->extension_service();
-  if (service) {
-    is_rewards_pressed_ = true;
-    extensions::ComponentLoader* loader = service->component_loader();
-          static_cast<extensions::BraveComponentLoader*>(loader)->
-              AddRewardsExtension();
-
-    if (rewards_service_) {
-      rewards_service_->StartProcess(base::DoNothing());
-    }
-  }
-}
-// end BraveRewardsActionStubView::Delegate members
 
 void BraveActionsContainer::OnExtensionSystemReady() {
   // observe changes in extension system
@@ -415,6 +401,10 @@ void BraveActionsContainer::OnBraveActionShouldTrigger(
 
 void BraveActionsContainer::ChildPreferredSizeChanged(views::View* child) {
   PreferredSizeChanged();
+}
+
+void BraveActionsContainer::ChildVisibilityChanged(views::View* child) {
+  UpdateVisibility();
 }
 
 // Brave Rewards preferences change observers callback

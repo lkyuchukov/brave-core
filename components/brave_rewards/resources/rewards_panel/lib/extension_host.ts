@@ -2,6 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+
+import { addWebUIListener } from 'chrome://resources/js/cr.m'
+
 import { Host, GrantCaptchaStatus } from './interfaces'
 import { GrantInfo } from '../../shared/lib/grant_info'
 
@@ -165,34 +168,33 @@ export function createHost (): Host {
     }).then(openTab, console.error)
   }
 
-  function handleStartupParameters () {
-    const { hash } = location
+  function handleStartupParameters (args: string) {
+    const params = new URLSearchParams(args)
 
+    /*
     const adaptiveCaptchaMatch = hash.match(/^#?load_adaptive_captcha$/i)
     if (adaptiveCaptchaMatch) {
       location.hash = ''
       loadAdaptiveCaptcha()
       return
     }
+    */
 
     const shouldLoadAdaptiveCaptcha = storage.readJSON('load-adaptive-captcha')
-    if (shouldLoadAdaptiveCaptcha && typeof shouldLoadAdaptiveCaptcha === 'boolean') {
-      location.hash = ''
+    if (shouldLoadAdaptiveCaptcha) {
       loadAdaptiveCaptcha()
       return
     }
 
-    const grantMatch = hash.match(/^#?grant_([\s\S]+)$/i)
-    if (grantMatch) {
-      location.hash = ''
-      loadGrantCaptcha(grantMatch[1], 'pending')
+    const grantId = params.get('claim-grant')
+    if (grantId) {
+      loadGrantCaptcha(grantId, 'pending')
       return
     }
 
-    const grantId = storage.readJSON('catcha-grant-id')
-    if (grantId && typeof grantId === 'string') {
-      location.hash = ''
-      loadGrantCaptcha(grantId, 'pending')
+    const storedGrantId = storage.readJSON('catcha-grant-id')
+    if (storedGrantId && typeof storedGrantId === 'string') {
+      loadGrantCaptcha(storedGrantId, 'pending')
     }
   }
 
@@ -233,22 +235,33 @@ export function createHost (): Host {
     }).catch(console.error)
   }
 
-  async function requestPublisherInfo () {
-    const tabInfo = await getCurrentTabInfo()
-    if (tabInfo) {
-      await apiAdapter.fetchPublisherInfo(tabInfo.id)
-    }
+  function updateStateForTab () {
+    stateManager.update({
+      loading: true,
+      publisherInfo: null
+    })
+
+    updatePublisherInfo().catch(console.error).then(() => {
+      stateManager.update({ loading: false })
+    })
   }
 
   function addListeners () {
-    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-      if (tab.active && changeInfo.status === 'complete') {
-        requestPublisherInfo().catch(console.error)
-      }
+    addWebUIListener('error', (type: any) => {
+      console.error(new Error(`WebUI error "${type}"`))
     })
 
-    apiAdapter.onPublisherDataUpdated(() => {
-      updatePublisherInfo().catch(console.error)
+    addWebUIListener('rewardsPanelRequested', (args: any) => {
+      handleStartupParameters(String(args || ''))
+    })
+
+    // When the active tab has finished loading, or when the active tab for this
+    // window has changed, reload publisher information.
+    chrome.tabs.onActivated.addListener(updateStateForTab)
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+      if (tab.active && changeInfo.status === 'complete') {
+        updateStateForTab();
+      }
     })
 
     // Update user settings after rewards has been enabled.
@@ -282,6 +295,10 @@ export function createHost (): Host {
     })
 
     addListeners()
+
+    await new Promise<void>((resolve) => {
+      addWebUIListener('rewardsStarted', resolve)
+    })
 
     await Promise.all([
       apiAdapter.getGrants().then((list) => {
@@ -319,9 +336,8 @@ export function createHost (): Host {
 
     updateNotifications()
 
-    requestPublisherInfo().catch(console.error)
-
-    handleStartupParameters()
+    const args = self['loadTimeData'].getString('rewardsPanelArgs')
+    handleStartupParameters(String(args))
 
     stateManager.update({ loading: false })
   }
@@ -335,12 +351,7 @@ export function createHost (): Host {
     addListener: stateManager.addListener,
 
     getString (key) {
-      // In order to normalize messages across extensions and WebUI, replace all
-      // chrome.i18n message placeholders with $N marker patterns. UI components
-      // are responsible for replacing these markers with appropriate text or
-      // using the markers to build HTML.
-      return chrome.i18n.getMessage(key,
-        ['$1', '$2', '$3', '$4', '$5', '$6', '$7', '$8', '$9'])
+      return self['loadTimeData'].getString(key)
     },
 
     enableRewards () {
@@ -361,7 +372,7 @@ export function createHost (): Host {
       stateManager.update({ publisherRefreshing: true })
 
       chrome.braveRewards.refreshPublisher(publisherInfo.id, () => {
-        requestPublisherInfo().then(() => {
+        updatePublisherInfo().then(() => {
           stateManager.update({ publisherRefreshing: false })
         }).catch(console.error)
       })

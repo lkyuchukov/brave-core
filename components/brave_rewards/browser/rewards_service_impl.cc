@@ -1994,6 +1994,21 @@ void RewardsServiceImpl::UpdateMediaDuration(
       first_visit);
 }
 
+void RewardsServiceImpl::IsPublisherRegistered(
+    const std::string& publisher_id,
+    base::OnceCallback<void(bool)> callback) {
+  if (!Connected()) {
+    base::SequencedTaskRunnerHandle::Get()->PostTask(
+        FROM_HERE,
+        base::BindOnce(
+            [](decltype(callback) callback) { std::move(callback).Run(false); },
+            std::move(callback)));
+    return;
+  }
+
+  bat_ledger_->IsPublisherRegistered(publisher_id, std::move(callback));
+}
+
 void RewardsServiceImpl::GetPublisherInfo(
     const std::string& publisher_key,
     GetPublisherInfoCallback callback) {

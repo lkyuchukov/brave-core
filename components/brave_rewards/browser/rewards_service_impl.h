@@ -247,6 +247,9 @@ class RewardsServiceImpl : public RewardsService,
       const uint64_t duration,
       const bool first_visit) override;
 
+  void IsPublisherRegistered(const std::string& publisher_id,
+                             base::OnceCallback<void(bool)> callback) override;
+
   void GetPublisherInfo(
       const std::string& publisher_key,
       GetPublisherInfoCallback callback) override;

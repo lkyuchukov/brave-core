@@ -1,13 +1,13 @@
 import("//brave/components/common/typescript.gni")
 
 group("brave_rewards") {
-  deps = [ ":brave_rewards_panel" ]
+  deps = [ ":brave_rewards_extension_panel" ]
 }
 
-transpile_web_ui("brave_rewards_panel") {
+transpile_web_ui("brave_rewards_extension_panel") {
   entry_points = [
     [
-      "brave_rewards_panel",
+      "brave_rewards_extension_panel",
       rebase_path("brave_rewards_panel.tsx"),
     ],
     [
@@ -20,7 +20,7 @@ transpile_web_ui("brave_rewards_panel") {
     ],
   ]
 
-  resource_name = "brave_rewards_panel"
+  resource_name = "brave_rewards_extension_panel"
 
   # Must match the relative path from the static GRD to the manifest.json
   # plus any other relative path we want these files to live in the extension
