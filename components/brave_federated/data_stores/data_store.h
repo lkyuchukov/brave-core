@@ -32,9 +32,12 @@ class DataStore {
             int max_number_of_records,
             int max_retention_days);
 
-  void AddTrainingInstance(const mojom::TrainingInstancePtr training_instance);
+  typedef base::flat_map<int, std::vector<mojom::Covariate>>
+      TrainingData;
+
+  bool AddTrainingInstance(mojom::TrainingInstancePtr training_instance);
   bool DeleteTrainingData();
-  base::flat_map<int, std::vector<mojom::Covariate>> LoadTrainingData();
+  TrainingData LoadTrainingData();
   void EnforceRetentionPolicy();
 
   virtual ~DataStore();

@@ -89,7 +89,7 @@ bool DataStore::Init(int task_id,
   return db_.Open(database_path_) && EnsureTable();
 }
 
-void DataStore::AddTrainingInstance(const mojom::TrainingInstancePtr training_instance) {
+bool DataStore::AddTrainingInstance(mojom::TrainingInstancePtr training_instance) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   int training_instance_id = 0; //TODO: How do we determine this on each Log? Read then write
   base::Time created_at = base::Time::Now();
@@ -105,12 +105,14 @@ void DataStore::AddTrainingInstance(const mojom::TrainingInstancePtr training_in
     BindCovariateToStatement(*covariate, training_instance_id, created_at, &s);
     s.Run(); //TODO: might want to do something with the success result
   }
+
+  return true;
 }
 
-base::flat_map<int, std::vector<mojom::Covariate>> DataStore::LoadTrainingData() {
+DataStore::TrainingData DataStore::LoadTrainingData() {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   
-  base::flat_map<int, std::vector<mojom::Covariate>> training_instances;
+  DataStore::TrainingData training_instances;
   sql::Statement s(db_.GetUniqueStatement(
       base::StringPrintf("SELECT id, time, locale, number_of_tabs, label, "
                          "creation_date FROM %s",
@@ -119,7 +121,6 @@ base::flat_map<int, std::vector<mojom::Covariate>> DataStore::LoadTrainingData()
 
   training_instances.clear();
   while (s.Step()) { 
-    // int id = s.ColumnInt(0);
     int training_instance_id = s.ColumnInt(1);
     mojom::CovariatePtr covariate = mojom::Covariate::New();
     covariate->covariate_type = (mojom::CovariateType) s.ColumnInt(2);

@@ -53,9 +53,6 @@ class SequencedTaskRunner;
 }  // namespace base
 
 namespace brave_federated {
-class AdNotificationTimingDataStore;
-struct AdNotificationTimingTaskLog;
-template <class T, class U>
 class AsyncDataStore;
 }  // namespace brave_federated
 
@@ -93,9 +90,7 @@ class AdsServiceImpl : public AdsService,
       std::unique_ptr<AdsTooltipsDelegate> ads_tooltips_delegate,
 #endif
       history::HistoryService* history_service,
-      brave_federated::AsyncDataStore<
-          brave_federated::AdNotificationTimingDataStore,
-          brave_federated::AdNotificationTimingTaskLog>*
+      brave_federated::AsyncDataStore*
           ad_notification_timing_data_store);
   ~AdsServiceImpl() override;
 
@@ -524,9 +519,7 @@ class AdsServiceImpl : public AdsService,
   raw_ptr<brave_rewards::RewardsService> rewards_service_{
       nullptr};  // NOT OWNED
 
-  raw_ptr<brave_federated::AsyncDataStore<
-      brave_federated::AdNotificationTimingDataStore,
-      brave_federated::AdNotificationTimingTaskLog>>
+  raw_ptr<brave_federated::AsyncDataStore>
       ad_notification_timing_data_store_ = nullptr;  // NOT OWNED
 
   mojo::AssociatedReceiver<bat_ads::mojom::BatAdsClient>
