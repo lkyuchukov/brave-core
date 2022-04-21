@@ -160,6 +160,35 @@ TEST(EthResponseParserUnitTest, ParseAddressResult) {
   EXPECT_TRUE(addr.empty());
 }
 
+TEST(EthResponseParserUnitTest, ParseEthGetLogs) {
+  std::string json(
+      R"({
+    "id": 1,
+    "jsonrpc": "2.0",
+    "result": {
+      "transactionHash": "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238",
+      "transactionIndex":  "0x1",
+      "blockNumber": "0xb",
+      "blockHash": "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b",
+      "cumulativeGasUsed": "0x33bc",
+      "gasUsed": "0x4dc",
+      "contractAddress": null,
+      "logs": [],
+      "logsBloom": "0x00...0",
+      "status": "0x1"
+    }
+  })");
+
+  // change to logs type
+  // TransactionReceipt receipt;
+  // ASSERT_TRUE(ParseEthGetTransactionReceipt(json, &receipt));
+  //
+  // update to expected kind
+  // EXPECT_EQ(
+  //     receipt.transaction_hash,
+  //     "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238");
+}
+
 TEST(EthResponseParserUnitTest, ParseEnsResolverContentHash) {
   std::string json =
       "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":"

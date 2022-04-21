@@ -595,6 +595,26 @@ class JsonRpcServiceUnitTest : public testing::Test {
     run_loop.Run();
   }
 
+  void TestDiscoverAssets(
+      const std::string& chain_id,
+      const std::vector<std::string>& account_addresses,
+      const std::vector<mojom::BlockchainTokenPtr> expected_tokens,
+      mojom::ProviderError expected_error,
+      const std::string& expected_error_message) {
+    base::RunLoop run_loop;
+    json_rpc_service_->DiscoverAssets(
+        chain_id, account_addresses,
+        base::BindLambdaForTesting(
+            [&](const std::vector<mojom::BlockchainTokenPtr> tokens,
+                mojom::ProviderError error, const std::string& error_message) {
+              EXPECT_EQ(tokens, expected_tokens);
+              EXPECT_EQ(error, expected_error);
+              EXPECT_EQ(error_message, expected_error_message);
+              run_loop.Quit();
+            }));
+    run_loop.Run();
+  }
+
   void TestGetSolanaBalance(uint64_t expected_balance,
                             mojom::SolanaProviderError expected_error,
                             const std::string& expected_error_message) {
@@ -2591,6 +2611,14 @@ TEST_F(JsonRpcServiceUnitTest, GetSupportsInterface) {
                      "Request exceeds defined limit", false));
   base::RunLoop().RunUntilIdle();
   EXPECT_TRUE(callback_called);
+}
+
+TEST_F(JsonRpcServiceUnitTest, DiscoverAssets) {
+  TestDiscoverAssets(mojom::kMainnetChainId,
+                     {"0x6b175474e89094c44da98b954eedeac495271d0f",
+                      "0x0d8775f648430679a709e98d2b0cb6250d2887ef"},
+                     std::vector<mojom::BlockchainTokenPtr>(),
+                     mojom::ProviderError::kSuccess, "");
 }
 
 TEST_F(JsonRpcServiceUnitTest, Reset) {

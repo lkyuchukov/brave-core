@@ -6,6 +6,8 @@
 #ifndef BRAVE_COMPONENTS_BRAVE_WALLET_BROWSER_JSON_RPC_REQUESTS_HELPER_H_
 #define BRAVE_COMPONENTS_BRAVE_WALLET_BROWSER_JSON_RPC_REQUESTS_HELPER_H_
 
+#include <vector>
+
 #include <string>
 #include "base/values.h"
 

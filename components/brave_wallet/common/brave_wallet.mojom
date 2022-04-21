@@ -769,6 +769,9 @@ interface JsonRpcService {
   // Obtains the quanitity of ERC1155 tokens a user has 
   GetERC1155TokenBalance(string contract_address, string token_id, string account_address, string chain_id) => (string balance, ProviderError error, string error_message);
 
+  // Searches EVM logs for transfer logs of tokens on our token registry
+  DiscoverAssets(string chain_id, array<string> owner_addresses) => (array<BlockchainToken> tokens, ProviderError error, string error_message);
+
   // Solana JSON RPCs
   // https://docs.solana.com/developing/clients/jsonrpc-api
 

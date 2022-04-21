@@ -219,6 +219,11 @@ bool ParseEthGasPrice(const std::string& json, std::string* result) {
   return ParseSingleStringResult(json, result);
 }
 
+bool ParseEthGetLogs(const std::string& json, std::string* result) {
+  // todo
+  return true;
+}
+
 bool ParseEnsResolverContentHash(const std::string& json,
                                  std::string* content_hash) {
   DCHECK(content_hash);

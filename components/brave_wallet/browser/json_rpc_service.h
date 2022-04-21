@@ -17,6 +17,7 @@
 #include "base/memory/weak_ptr.h"
 #include "base/observer_list_threadsafe.h"
 #include "brave/components/api_request_helper/api_request_helper.h"
+// #include "brave/components/brave_wallet/browser/blockchain_registry.h"
 #include "brave/components/brave_wallet/browser/brave_wallet_constants.h"
 #include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
 #include "brave/components/brave_wallet/common/brave_wallet_types.h"
@@ -38,6 +39,7 @@ class PrefService;
 namespace brave_wallet {
 template <class ResultType>
 class UnstoppableDomainsMultichainCalls;
+// class BlockchainRegistry;
 
 class JsonRpcService : public KeyedService, public mojom::JsonRpcService {
  public:
@@ -258,6 +260,21 @@ class JsonRpcService : public KeyedService, public mojom::JsonRpcService {
                               const std::string& token_id,
                               const std::string& chain_id,
                               GetERC1155TokenBalanceCallback callback) override;
+
+  void DiscoverAssets(const std::string& chain_id,
+                      const std::vector<std::string>&,
+                      DiscoverAssetsCallback callback) override;
+
+  void OnGetAllTokensDiscoverAssets(
+      const std::vector<std::string>& account_addresses,
+      DiscoverAssetsCallback callback,
+      std::vector<mojom::BlockchainTokenPtr> token_list);
+
+  void OnGetTransferLogs(
+      DiscoverAssetsCallback callback,
+      const int status,
+      const std::string& body,
+      const base::flat_map<std::string, std::string>& headers);
 
   // Resets things back to the original state of BraveWalletService.
   // To be used when the Wallet is reset / erased
@@ -572,6 +589,7 @@ class JsonRpcService : public KeyedService, public mojom::JsonRpcService {
 
   mojo::ReceiverSet<mojom::JsonRpcService> receivers_;
   PrefService* prefs_ = nullptr;
+  // raw_ptr<mojom::BlockchainRegistry> blockchain_registry_ = nullptr;
   base::WeakPtrFactory<JsonRpcService> weak_ptr_factory_;
 };
 
