@@ -325,9 +325,8 @@ bool BraveContentSettingsAgentImpl::AllowAutoplay(bool play_requested) {
 
   // respect user's site blocklist, if any
   if (content_setting_rules_) {
-    ContentSetting setting =
-        GetContentSettingFromRules(content_setting_rules_->autoplay_rules,
-                                   frame, url::Origin(origin).GetURL());
+    ContentSetting setting = GetContentSettingFromRulesImpl(
+        content_setting_rules_->autoplay_rules, url::Origin(origin).GetURL());
     if (setting == CONTENT_SETTING_BLOCK) {
       VLOG(1) << "AllowAutoplay=false because rule=CONTENT_SETTING_BLOCK";
       if (play_requested)
