@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/profiles/profile_manager.h b/chrome/browser/profiles/profile_manager.h
-index cc3c0dfb5be1b31a7dfbc252350a19d62f39d1b8..abf2b024fedcb7c8929a711d47d88d1baba2f588 100644
+index 8ba4e0ba9f3c014fb94794d50afe8d54e94e3fdf..9e0fd8ccd3e5d2f5bf78c3b66ff5ef89f318d5a7 100644
 --- a/chrome/browser/profiles/profile_manager.h
 +++ b/chrome/browser/profiles/profile_manager.h
 @@ -349,6 +349,7 @@ class ProfileManager : public Profile::Delegate {
@@ -8,5 +8,5 @@ index cc3c0dfb5be1b31a7dfbc252350a19d62f39d1b8..abf2b024fedcb7c8929a711d47d88d1b
    }
 +  BRAVE_PROFILE_MANAGER_H
  
-  private:
-   friend class TestingProfileManager;
+ #if BUILDFLAG(IS_CHROMEOS_LACROS)
+   void SetAccountProfileMapperForTests(
