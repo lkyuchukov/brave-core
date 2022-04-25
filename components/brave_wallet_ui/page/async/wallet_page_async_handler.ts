@@ -34,6 +34,7 @@ import { Store } from '../../common/async/types'
 import { getTokenParam } from '../../utils/api-utils'
 import getAPIProxy from '../../common/async/bridge'
 import { getTokensNetwork } from '../../utils/network-utils'
+import { httpifyIpfsUrl } from '../../utils/string-utils'
 
 const handler = new AsyncActionHandler()
 
@@ -234,7 +235,7 @@ handler.on(WalletPageActions.openWalletSettings.getType(), async (store) => {
 
 handler.on(WalletPageActions.getNFTMetadata.getType(), async (store, payload: BraveWallet.BlockchainToken) => {
   store.dispatch(WalletPageActions.setIsFetchingNFTMetadata(true))
-  const jsonRpcService = getAPIProxy().jsonRpcService
+  const { jsonRpcService } = getAPIProxy()
   const result = await jsonRpcService.getERC721Metadata(payload.contractAddress, payload.tokenId, payload.chainId)
 
   if (!result.error) {
@@ -244,7 +245,7 @@ handler.on(WalletPageActions.getNFTMetadata.getType(), async (store, payload: Br
       chainName: tokenNetwork.chainName,
       tokenType: 'ERC721', // getNFTMetadata currently supports only ERC721 standard. When other standards are supported, this value should be dynamic
       tokenID: payload.tokenId,
-      imageURL: `chrome://image/?${response.image.includes('ipfs://') ? response.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : response.image}`,
+      imageURL: response.image.startsWith('data:image/') ? response.image : httpifyIpfsUrl(response.image),
       floorFiatPrice: '',
       floorCryptoPrice: '',
       contractInformation: {
