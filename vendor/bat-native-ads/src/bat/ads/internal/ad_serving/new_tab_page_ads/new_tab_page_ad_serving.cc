@@ -20,6 +20,7 @@
 #include "bat/ads/internal/eligible_ads/new_tab_page_ads/eligible_new_tab_page_ads_factory.h"
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/resources/frequency_capping/anti_targeting/anti_targeting_resource.h"
+#include "bat/ads/internal/time_profiler.h"
 #include "bat/ads/new_tab_page_ad_info.h"
 
 namespace ads {
@@ -61,20 +62,27 @@ void AdServing::MaybeServeAd(GetNewTabPageAdCallback callback) {
     return;
   }
 
+  TIME_PROFILER_BEGIN();
+
   frequency_capping::PermissionRules permission_rules;
   if (!permission_rules.HasPermission()) {
     BLOG(1, "New tab page ad not served: Not allowed due to permission rules");
     FailedToServeAd(callback);
     return;
   }
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("PermissionRules");
 
   const ad_targeting::UserModelInfo& user_model =
       ad_targeting::BuildUserModel();
+
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("BuildUserModel");
 
   DCHECK(eligible_ads_);
   eligible_ads_->GetForUserModel(
       user_model, [=](const bool had_opportunity,
                       const CreativeNewTabPageAdList& creative_ads) {
+        TIME_PROFILER_MEASURE_WITH_MESSAGE("GetForUserModel");
+
         if (creative_ads.empty()) {
           BLOG(1, "New tab page ad not served: No eligible ads found");
           FailedToServeAd(callback);
@@ -130,6 +138,8 @@ bool AdServing::ServeAd(const NewTabPageAdInfo& ad,
 
   NotifyDidServeNewTabPageAd(ad);
 
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("ServeAd");
+
   return true;
 }
 
@@ -137,11 +147,17 @@ void AdServing::FailedToServeAd(GetNewTabPageAdCallback callback) {
   callback(/* success */ false, {});
 
   NotifyFailedToServeNewTabPageAd();
+
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("FailedToServeAd");
+  TIME_PROFILER_END();
 }
 
 void AdServing::ServedAd(const NewTabPageAdInfo& ad) {
   DCHECK(eligible_ads_);
   eligible_ads_->set_last_served_ad(ad);
+
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("ServedAd");
+  TIME_PROFILER_END();
 }
 
 void AdServing::NotifyDidServeNewTabPageAd(const NewTabPageAdInfo& ad) const {

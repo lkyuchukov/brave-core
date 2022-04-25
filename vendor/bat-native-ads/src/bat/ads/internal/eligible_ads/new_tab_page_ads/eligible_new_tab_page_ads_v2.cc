@@ -21,6 +21,7 @@
 #include "bat/ads/internal/resources/frequency_capping/anti_targeting/anti_targeting_resource.h"
 #include "bat/ads/internal/segments/segments_aliases.h"
 #include "bat/ads/new_tab_page_ad_info.h"
+#include "bat/ads/internal/time_profiler.h"
 
 namespace ads {
 namespace new_tab_page_ads {
@@ -37,12 +38,19 @@ void EligibleAdsV2::GetForUserModel(
     GetEligibleAdsCallback<CreativeNewTabPageAdList> callback) {
   BLOG(1, "Get eligible new tab page ads:");
 
+  TIME_PROFILER_BEGIN();
+
   database::table::AdEvents database_table;
   database_table.GetForType(
       mojom::AdType::kNewTabPageAd,
       [=](const bool success, const AdEventList& ad_events) {
+        TIME_PROFILER_MEASURE_WITH_MESSAGE("AdEvents.GetForType");
+
         if (!success) {
           BLOG(1, "Failed to get ad events");
+
+          TIME_PROFILER_END();
+
           callback(/* had_opportunity */ false, {});
           return;
         }
@@ -52,6 +60,8 @@ void EligibleAdsV2::GetForUserModel(
         AdsClientHelper::Get()->GetBrowsingHistory(
             max_count, days_ago,
             [=](const BrowsingHistoryList& browsing_history) {
+              TIME_PROFILER_MEASURE_WITH_MESSAGE("GetBrowsingHistory");
+
               GetEligibleAds(user_model, ad_events, browsing_history, callback);
             });
       });
@@ -67,8 +77,13 @@ void EligibleAdsV2::GetEligibleAds(
   database::table::CreativeNewTabPageAds database_table;
   database_table.GetAll([=](const bool success, const SegmentList& segments,
                             const CreativeNewTabPageAdList& creative_ads) {
+    TIME_PROFILER_MEASURE_WITH_MESSAGE("GetEligibleAds");
+
     if (!success) {
       BLOG(1, "Failed to get ads");
+
+      TIME_PROFILER_END();
+
       callback(/* had_opportunity */ false, {});
       return;
     }
@@ -77,19 +92,29 @@ void EligibleAdsV2::GetEligibleAds(
         FilterCreativeAds(creative_ads, ad_events, browsing_history);
     if (eligible_creative_ads.empty()) {
       BLOG(1, "No eligible ads");
+
+      TIME_PROFILER_END();
+
       callback(/* had_opportunity */ true, {});
       return;
     }
+
+    TIME_PROFILER_MEASURE_WITH_MESSAGE("ChooseAd");
 
     const absl::optional<CreativeNewTabPageAdInfo>& creative_ad_optional =
         ChooseAd(user_model, ad_events, eligible_creative_ads);
     if (!creative_ad_optional) {
       BLOG(1, "No eligible ads");
+
+      TIME_PROFILER_END();
+
       callback(/* had_opportunity */ true, {});
       return;
     }
 
     const CreativeNewTabPageAdInfo& creative_ad = creative_ad_optional.value();
+
+    TIME_PROFILER_END();
 
     callback(/* had_opportunity */ true, {creative_ad});
   });

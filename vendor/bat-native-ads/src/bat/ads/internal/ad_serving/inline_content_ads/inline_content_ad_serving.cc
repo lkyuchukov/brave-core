@@ -21,6 +21,7 @@
 #include "bat/ads/internal/eligible_ads/inline_content_ads/eligible_inline_content_ads_factory.h"
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/resources/frequency_capping/anti_targeting/anti_targeting_resource.h"
+#include "bat/ads/internal/time_profiler.h"
 
 namespace ads {
 namespace inline_content_ads {
@@ -62,6 +63,8 @@ void AdServing::MaybeServeAd(const std::string& dimensions,
     return;
   }
 
+  TIME_PROFILER_BEGIN();
+
   frequency_capping::PermissionRules permission_rules;
   if (!permission_rules.HasPermission()) {
     BLOG(1,
@@ -69,15 +72,20 @@ void AdServing::MaybeServeAd(const std::string& dimensions,
     FailedToServeAd(dimensions, callback);
     return;
   }
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("PermissionRules");
 
   const ad_targeting::UserModelInfo& user_model =
       ad_targeting::BuildUserModel();
+
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("BuildUserModel");
 
   DCHECK(eligible_ads_);
   eligible_ads_->GetForUserModel(
       user_model, dimensions,
       [=](const bool had_opportunity,
           const CreativeInlineContentAdList& creative_ads) {
+        TIME_PROFILER_MEASURE_WITH_MESSAGE("GetForUserModel");
+
         if (creative_ads.empty()) {
           BLOG(1, "Inline content ad not served: No eligible ads found");
           FailedToServeAd(dimensions, callback);
@@ -133,6 +141,8 @@ bool AdServing::ServeAd(const InlineContentAdInfo& ad,
 
   NotifyDidServeInlineContentAd(ad);
 
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("ServeAd");
+
   return true;
 }
 
@@ -141,11 +151,17 @@ void AdServing::FailedToServeAd(const std::string& dimensions,
   callback(/* success */ false, dimensions, {});
 
   NotifyFailedToServeInlineContentAd();
+
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("FailedToServeAd");
+  TIME_PROFILER_END();
 }
 
 void AdServing::ServedAd(const InlineContentAdInfo& ad) {
   DCHECK(eligible_ads_);
   eligible_ads_->set_last_served_ad(ad);
+
+  TIME_PROFILER_MEASURE_WITH_MESSAGE("ServedAd");
+  TIME_PROFILER_END();
 }
 
 void AdServing::NotifyDidServeInlineContentAd(
