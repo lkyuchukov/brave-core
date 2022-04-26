@@ -36,7 +36,7 @@
 
 namespace ads {
 
-Account::Account(privacy::TokenGeneratorInterface* token_generator)
+Account::Account(privacy::cbr::TokenGeneratorInterface* token_generator)
     : confirmations_(std::make_unique<Confirmations>(token_generator)),
       issuers_(std::make_unique<Issuers>()),
       redeem_unblinded_payment_tokens_(
@@ -244,6 +244,12 @@ void Account::OnFailedToConfirm(const ConfirmationInfo& confirmation) {
   DCHECK(confirmation.IsValid());
 
   TopUpUnblindedTokens();
+}
+
+void Account::OnIssuersOutOfDate() {
+  BLOG(1, "Issuers are out of date");
+
+  MaybeGetIssuers();
 }
 
 void Account::OnDidGetIssuers(const IssuersInfo& issuers) {

@@ -70,8 +70,10 @@ class Initialize;
 }  // namespace database
 
 namespace privacy {
+namespace cbr {
 class TokenGenerator;
 class TokenGeneratorInterface;
+}  // namespace cbr
 }  // namespace privacy
 
 class Account;
@@ -123,7 +125,7 @@ class AdsImpl final : public Ads,
   AdsImpl(const AdsImpl&) = delete;
   AdsImpl& operator=(const AdsImpl&) = delete;
 
-  void SetForTesting(privacy::TokenGeneratorInterface* token_generator);
+  void SetForTesting(privacy::cbr::TokenGeneratorInterface* token_generator);
 
   bool IsInitialized() const;
 
@@ -223,7 +225,7 @@ class AdsImpl final : public Ads,
   bool ToggleFlaggedAd(const std::string& json) override;
 
  private:
-  void set(privacy::TokenGeneratorInterface* token_generator);
+  void set(privacy::cbr::TokenGeneratorInterface* token_generator);
 
   void InitializeBrowserManager();
   void InitializeDatabase(InitializeCallback callback);
@@ -324,7 +326,7 @@ class AdsImpl final : public Ads,
   std::unique_ptr<AdDiagnostics> ad_diagnostics_;
   std::unique_ptr<BrowserManager> browser_manager_;
   std::unique_ptr<TabManager> tab_manager_;
-  std::unique_ptr<privacy::TokenGenerator> token_generator_;
+  std::unique_ptr<privacy::cbr::TokenGenerator> token_generator_;
   std::unique_ptr<Account> account_;
   std::unique_ptr<ad_targeting::processor::EpsilonGreedyBandit>
       epsilon_greedy_bandit_processor_;
