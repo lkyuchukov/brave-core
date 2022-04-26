@@ -9,9 +9,9 @@ function getProxy() {
 }
 
 function initialize() {
-  getProxy().getAdStoreInfo();
+  getProxy().getDataStoreInfo();
   
-  getProxy().getCallbackRouter().onAdStoreInfoAvailable.addListener(
+  getProxy().getCallbackRouter().onDataStoreInfoAvailable.addListener(
     (logs) => {
       dataStoresLogs['ad-timing'] = logs;
       onDataStoreChanged();
@@ -39,6 +39,8 @@ function onDataStoreChanged() {
       while (thead.firstChild) {
         thead.removeChild(thead.firstChild);
       }
+
+      console.log(logs[0]);
       Object.keys(logs[0]).forEach(function(title) {
           const th = document.createElement('th');
           th.textContent = title;

@@ -23,6 +23,7 @@ FORWARD_DECLARE_TEST(AdNotificationTimingDataStoreTest,
 class DataStore {
  public:
   explicit DataStore(const base::FilePath& database_path);
+  ~DataStore();
 
   DataStore(const DataStore&) = delete;
   DataStore& operator=(const DataStore&) = delete;
@@ -40,7 +41,7 @@ class DataStore {
   TrainingData LoadTrainingData();
   void EnforceRetentionPolicy();
 
-  virtual ~DataStore();
+  void IsAlive();
 
  protected:
   friend class DataStoreTest;

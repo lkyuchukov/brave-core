@@ -18,6 +18,8 @@
 #include "sql/statement.h"
 #include "sql/transaction.h"
 
+#include <iostream>
+
 namespace {
 
 void DatabaseErrorCallback(sql::Database* db,
@@ -110,15 +112,18 @@ bool DataStore::AddTrainingInstance(mojom::TrainingInstancePtr training_instance
 }
 
 DataStore::TrainingData DataStore::LoadTrainingData() {
+  std::cerr << "**: REACHED." << std::endl;   
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   
+  std::cerr << "**: About to query." << std::endl; 
   DataStore::TrainingData training_instances;
   sql::Statement s(db_.GetUniqueStatement(
-      base::StringPrintf("SELECT id, time, locale, number_of_tabs, label, "
-                         "creation_date FROM %s",
+      base::StringPrintf("SELECT id, training_instance_id, feature_name, feature_type, value, "
+                         "created_at FROM %s",
                          task_name_.c_str())
           .c_str()));
 
+  std::cerr << "**: About to load training instances." << std::endl;   
   training_instances.clear();
   while (s.Step()) { 
     int training_instance_id = s.ColumnInt(1);
@@ -151,6 +156,7 @@ bool DataStore::DeleteTrainingData() {
 }
 
 void DataStore::EnforceRetentionPolicy() {
+  std::cerr << "**: REACHED." << std::endl;
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
 
   sql::Statement s(db_.GetUniqueStatement(
@@ -179,6 +185,10 @@ bool DataStore::EnsureTable() {
                  task_name_.c_str())
                  .c_str()) &&
          transaction.Commit();
+}
+
+void DataStore::IsAlive() {
+  std::cerr << "**: It's alive." << std::endl;
 }
 
 }  // namespace brave_federated

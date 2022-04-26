@@ -2173,9 +2173,9 @@ void AdsServiceImpl::LogTrainingInstance(
     return;
   }
 
-  auto callback =
-      base::BindOnce(&AdsServiceImpl::OnLogTrainingCovariates, AsWeakPtr());
-  ad_notification_timing_data_store_->AddTrainingInstance(training_covariates, std::move(callback));
+  // auto callback =
+  //     base::BindOnce(&AdsServiceImpl::OnLogTrainingInstance, AsWeakPtr());
+  // ad_notification_timing_data_store_->AddTrainingInstance(std::move(training_instance), std::move(callback));
 }
 
 void AdsServiceImpl::OnLogTrainingInstance(bool success) {

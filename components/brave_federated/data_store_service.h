@@ -20,6 +20,13 @@
 #include "brave/components/brave_federated/data_stores/data_store.h"
 #include "brave/components/brave_federated/public/interfaces/brave_federated.mojom.h"
 
+namespace {
+constexpr char kAdNotificationTaskName[] =
+    "ad_notification_timing_federated_task";
+constexpr int kAdNotificationTaskId = 0;
+constexpr int kMaxNumberOfRecords = 50;
+constexpr int kMaxRetentionDays = 30;
+}  // namespace
 
 namespace brave_federated {
 
@@ -44,6 +51,7 @@ class AsyncDataStore {
                            base::OnceCallback<void(bool)> callback);
   void LoadTrainingData(base::OnceCallback<void(DataStore::TrainingData)> callback);
   void EnforceRetentionPolicy();
+  void IsAlive();
 };
 
 // DataStoreService is the shared interface between all adopters applications
@@ -65,7 +73,7 @@ class DataStoreService {
   void OnInitComplete(bool success);
 
   base::FilePath db_path_;
-  base::flat_map<std::string, AsyncDataStore*> data_stores_;
+  base::flat_map<std::string, AsyncDataStore> data_stores_;
   base::WeakPtrFactory<DataStoreService> weak_factory_;
 };
 

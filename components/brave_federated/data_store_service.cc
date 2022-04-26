@@ -13,13 +13,7 @@
 #include "base/threading/sequenced_task_runner_handle.h"
 #include "brave/components/brave_federated/data_stores/data_store.h"
 
-namespace {
-constexpr char kAdNotificationTaskName[] =
-    "ad_notification_timing_federated_task";
-constexpr int kAdNotificationTaskId = 0;
-constexpr int kMaxNumberOfRecords = 50;
-constexpr int kMaxRetentionDays = 30;
-}  // namespace
+#include <iostream>
 
 namespace brave_federated {
 
@@ -31,11 +25,14 @@ AsyncDataStore::AsyncDataStore(base::FilePath db_path)
                         base::TaskShutdownBehavior::CONTINUE_ON_SHUTDOWN}),
                   db_path) {}
 
+AsyncDataStore::~AsyncDataStore() {}
+
 void AsyncDataStore::Init(int task_id,
           const std::string& task_name,
           int max_number_of_records,
           int max_retention_days,
           base::OnceCallback<void(bool)> callback) {
+  std::cerr << "**: Initiliazing..." << std::endl;        
   data_store_.AsyncCall(&DataStore::Init)
       .WithArgs(task_id, task_name, max_number_of_records, max_retention_days)
       .Then(std::move(callback));
@@ -48,10 +45,20 @@ void AsyncDataStore::AddTrainingInstance(
 }
 
 void AsyncDataStore::LoadTrainingData(base::OnceCallback<void(DataStore::TrainingData)> callback) {
+  std::cerr << "**: Async Load Training called." << std::endl;
+  std::cerr << "**: on SB data_store " << &data_store_ << std::endl;
   data_store_.AsyncCall(&DataStore::LoadTrainingData).Then(std::move(callback));
 }
 
+void AsyncDataStore::IsAlive() {
+  std::cerr << "**: calling isAlive " << &data_store_ << std::endl;
+  data_store_.AsyncCall(&DataStore::IsAlive);
+  std::cerr << "**: isAlive called succesfully " << &data_store_ << std::endl;
+}
+
 void AsyncDataStore::EnforceRetentionPolicy() {
+  std::cerr << "**: Async Enforce Retention called." << std::endl;
+  std::cerr << "**: on SB data_store " << &data_store_ << std::endl;
   data_store_.AsyncCall(&DataStore::EnforceRetentionPolicy);
 }
 
@@ -66,6 +73,7 @@ DataStoreService::~DataStoreService() {
 }
 
 void DataStoreService::OnInitComplete(bool success) {
+  std::cerr << "**: Initializing has succeded: " << success << std::endl;
   if (success) {
     EnforceRetentionPolicies();
   }
@@ -80,15 +88,15 @@ void DataStoreService::Init() {
   ad_notification_timing_data_store.Init(
       kAdNotificationTaskId, kAdNotificationTaskName, kMaxNumberOfRecords,
       kMaxRetentionDays, std::move(callback));
-  
-  data_stores_.insert(std::make_pair(kAdNotificationTaskName, &ad_notification_timing_data_store));
+    
+  data_stores_ = data_stores_.emplace(kAdNotificationTaskName, std::move(ad_notification_timing_data_store));
 }
 
 AsyncDataStore* DataStoreService::GetDataStore(const std::string& name) {
   if (data_stores_.find(name) == data_stores_.end())
     return nullptr;
 
-  return data_stores_[name];
+  return &data_stores_[name];
 }
 
 void DataStoreService::EnforceRetentionPolicies() {
