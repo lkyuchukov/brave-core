@@ -43,11 +43,7 @@ Polymer({
       type: Boolean,
       value: false,
     },
-    isInvalidSyncCode_: {
-      type: Boolean,
-      value: false,
-    },
-    syncCodeValidationResult_: {
+    syncCodeValidationError_: {
       type: String,
       value: '',
      }
@@ -92,13 +88,11 @@ Polymer({
     try {
       success = await this.syncBrowserProxy_.setSyncCode(syncCodeToSubmit)
     } catch (e) {
-      this.syncCodeValidationResult_ = e
+      this.syncCodeValidationError_ = e
       success = false
     }
     this.isSubmittingSyncCode_ = false
-    if (!success) {
-      this.isInvalidSyncCode_ = true
-    } else {
+    if (success) {
       this.syncCodeDialogType_ = undefined
       this.fire('setup-success')
     }
