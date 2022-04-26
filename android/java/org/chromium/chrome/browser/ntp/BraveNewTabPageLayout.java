@@ -732,6 +732,10 @@ public class BraveNewTabPageLayout extends NewTabPageLayout implements Connectio
 
     private void keepPosition(int prevScrollPosition, int prevRecyclerViewPosition,
             int prevRecyclerViewItemPosition) {
+        if ((!mIsNewsOn && mIsShowNewsOn) || (mIsNewsOn && mIsShowOptin)
+                || (mIsNewsOn && !mIsShowNewsOn)) {
+            return;
+        }
         processFeed();
         int scrollPosition = prevScrollPosition;
 
