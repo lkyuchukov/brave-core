@@ -22,13 +22,13 @@ import { WalletPageActions } from '../../../../page/actions'
 // components
 import { DividerLine, NavButton } from '../../../../components/extension'
 import PopupModal from '..'
+import { SelectAccountType } from './select-account-type'
 
 // style
 import {
   Input,
   StyledWrapper
 } from './style'
-import { SelectAccountType } from './select-account-type'
 
 interface Params {
   accountTypeName: string
