@@ -6,7 +6,7 @@ edition = "2018"
 publish = false
 
 [dependencies]
-base64 = "0.12.3"
+base64 = "0.13.0"
 blake2b_simd = "1.0"
 bls-signatures = { version = "0.11.3", default-features = false, features = ["pairing"] }
 cxx = { path = "../../../../third_party/rust/cxx/v1/crate"}
