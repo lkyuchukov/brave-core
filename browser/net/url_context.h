@@ -132,8 +132,6 @@ struct BraveRequestInfo {
   // Please don't add any more friends here if it can be avoided.
   // We should also remove the one below.
   friend class ::BraveRequestHandler;
-
-  GURL* new_url = nullptr;
 };
 
 // ResponseListener

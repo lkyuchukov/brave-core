@@ -144,7 +144,6 @@ int BraveRequestHandler::OnBeforeURLRequest(
   if (before_url_request_callbacks_.empty() || IsInternalScheme(ctx)) {
     return net::OK;
   }
-  ctx->new_url = new_url;
   ctx->event_type = brave::kOnBeforeRequest;
   callbacks_[ctx->request_identifier] = std::move(callback);
   RunNextCallback(ctx);
@@ -281,11 +280,6 @@ void BraveRequestHandler::RunNextCallback(
   }
 
   if (ctx->event_type == brave::kOnBeforeRequest) {
-    if (!ctx->new_url_spec.empty() &&
-        (ctx->new_url_spec != ctx->request_url.spec()) &&
-        IsRequestIdentifierValid(ctx->request_identifier)) {
-      *ctx->new_url = GURL(ctx->new_url_spec);
-    }
     if (ctx->blocked_by == brave::kAdBlocked ||
         ctx->blocked_by == brave::kOtherBlocked) {
       if (!ctx->ShouldMockRequest()) {
