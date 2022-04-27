@@ -35,7 +35,7 @@ class FilecoinKeyring : public HDKeyring {
                                     mojom::FilecoinAddressProtocol protocol);
   void RestoreFilecoinAccount(const std::vector<uint8_t>& input_key,
                               const std::string& address);
-  absl::optional<std::string> SignTransaction(FilTransaction* tx);
+  absl::optional<std::string> SignTransaction(const FilTransaction* tx);
 
  private:
   std::string GetAddressInternal(HDKeyBase* hd_key_base) const override;

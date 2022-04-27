@@ -143,7 +143,7 @@ std::string FilecoinKeyring::GetAddressInternal(HDKeyBase* hd_key_base) const {
 }
 
 absl::optional<std::string> FilecoinKeyring::SignTransaction(
-    FilTransaction* tx) {
+    const FilTransaction* tx) {
   if (!tx)
     return absl::nullopt;
   auto address = tx->from().EncodeAsString();

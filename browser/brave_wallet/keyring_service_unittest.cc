@@ -2685,9 +2685,8 @@ TEST_F(KeyringServiceUnitTest, AddFilecoinAccounts) {
     ASSERT_FALSE(AddAccount(&service, "FIL account1", mojom::CoinType::FIL));
     service.Reset();
   }
-  base::test::ScopedFeatureList feature_list;
-  feature_list.InitAndEnableFeature(
-      brave_wallet::features::kBraveWalletFilecoinFeature);
+  base::test::ScopedFeatureList feature_list{
+      features::kBraveWalletFilecoinFeature};
 
   ASSERT_TRUE(CreateWallet(&service, "brave"));
 
