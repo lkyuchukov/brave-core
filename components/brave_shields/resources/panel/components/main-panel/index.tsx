@@ -13,7 +13,7 @@ function MainPanel () {
   const { siteBlockInfo } = React.useContext(DataContext)
 
   const braveShieldsStatusText = splitStringForTag(siteBlockInfo?.isShieldsEnabled ? getLocale('braveShieldsUp') : getLocale('braveShieldsDown'))
-  const braveShieldsBlockedNote = splitStringForTag(getLocale('braveShieldsBlockedNote'))
+  const braveShieldsNote = splitStringForTag(siteBlockInfo?.isShieldsEnabled ? getLocale('braveShieldsBlockedNote') : getLocale('braveShieldsNOTBlockedNote'))
   const braveShieldsBrokenText = splitStringForTag(getLocale('braveShieldsBroken'))
 
   const handleToggleChange = async (isOn: boolean) => {
@@ -89,6 +89,16 @@ function MainPanel () {
     )
   }
 
+  const renderTotalCount = () => {
+    if (!siteBlockInfo?.isShieldsEnabled) {
+      return (<S.BlockCount>{'\u2014'}</S.BlockCount>)
+    }
+
+    return (<S.BlockCount title={siteBlockInfo?.totalBlockedResources.toString()}>
+      {(siteBlockInfo?.totalBlockedResources ?? 0) > 99 ? '99+' : siteBlockInfo?.totalBlockedResources}
+    </S.BlockCount>)
+  }
+
   return (
     <S.Box>
       <S.HeaderBox>
@@ -100,15 +110,11 @@ function MainPanel () {
       </S.SiteTitleBox>
       <S.CountBox>
         <S.BlockNote>
-          {braveShieldsBlockedNote.beforeTag}
-          <a href="#" onClick={handleLearnMoreClick}>{braveShieldsBlockedNote.duringTag}</a>
-          {braveShieldsBlockedNote.afterTag}
+          {braveShieldsNote.beforeTag}
+          <a href="#" onClick={handleLearnMoreClick}>{braveShieldsNote.duringTag}</a>
+          {braveShieldsNote.afterTag}
         </S.BlockNote>
-        <S.BlockCount
-          title={siteBlockInfo?.totalBlockedResources.toString()}
-        >
-          {(siteBlockInfo?.totalBlockedResources ?? 0) > 99 ? '99+' : siteBlockInfo?.totalBlockedResources}
-        </S.BlockCount>
+        {renderTotalCount()}
       </S.CountBox>
       </S.HeaderBox>
       <S.StatusBox>
