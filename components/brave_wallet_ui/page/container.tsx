@@ -38,10 +38,6 @@ import { Skeleton } from '../components/shared/loading-skeleton/styles'
 
 // Utils
 import { GetBuyOrFaucetUrl } from '../utils/buy-asset-url'
-import {
-  getBalance,
-  onConnectHardwareWallet
-} from '../common/async/lib'
 
 // Hooks
 import { useAssets } from '../common/hooks'
@@ -56,13 +52,10 @@ export const Container = () => {
   const dispatch = useDispatch()
 
   const {
-    isFilecoinEnabled,
-    isSolanaEnabled,
     isWalletCreated,
     isWalletLocked,
     isWalletBackedUp,
     hasIncorrectPassword,
-    accounts,
     selectedNetwork,
     selectedAccount,
     hasInitialized,
@@ -71,7 +64,6 @@ export const Container = () => {
   } = useSelector(({ wallet }: { wallet: WalletState }) => wallet)
 
   const setupStillInProgress = useSelector(({ page }: { page: PageState }) => page.setupStillInProgress)
-  const importAccountError = useSelector(({ page }: { page: PageState }) => page.importAccountError)
 
   // state
   const [sessionRoute, setSessionRoute] = React.useState<string | undefined>(undefined)
@@ -131,53 +123,11 @@ export const Container = () => {
     }
   }, [hasIncorrectPassword])
 
-  const onHideAddModal = React.useCallback(() => {
-    dispatch(WalletPageActions.setShowAddModal(false))
-  }, [])
-
-  const onCreateAccount = React.useCallback((name: string, coin: BraveWallet.CoinType) => {
-    const created = dispatch(WalletPageActions.addAccount({ accountName: name, coin: coin }))
-    if (walletLocation.includes(WalletRoutes.Accounts)) {
-      history.push(WalletRoutes.Accounts)
-    }
-    if (created) {
-      onHideAddModal()
-    }
-  }, [onHideAddModal])
-
   const onSubmitBuy = React.useCallback((asset: BraveWallet.BlockchainToken) => {
     GetBuyOrFaucetUrl(selectedNetwork.chainId, asset, selectedAccount, buyAmount)
       .then(url => window.open(url, '_blank'))
       .catch(e => console.error(e))
   }, [selectedNetwork, selectedAccount, buyAmount])
-
-  const onAddHardwareAccounts = React.useCallback((selected: BraveWallet.HardwareWalletAccount[]) => {
-    dispatch(WalletPageActions.addHardwareAccounts(selected))
-  }, [])
-
-  const onImportAccount = React.useCallback((accountName: string, privateKey: string, coin: BraveWallet.CoinType) => {
-    dispatch(WalletPageActions.importAccount({ accountName, privateKey, coin }))
-  }, [])
-
-  const onImportFilecoinAccount = React.useCallback((accountName: string, privateKey: string, network: string) => {
-    dispatch(WalletPageActions.importFilecoinAccount({ accountName, privateKey, network }))
-  }, [])
-
-  const onImportAccountFromJson = React.useCallback((accountName: string, password: string, json: string) => {
-    dispatch(WalletPageActions.importAccountFromJson({ accountName, password, json }))
-  }, [])
-
-  const onSetImportAccountError = React.useCallback((hasError: boolean) => {
-    dispatch(WalletPageActions.setImportAccountError(hasError))
-  }, [])
-
-  const onRemoveAccount = React.useCallback((address: string, hardware: boolean, coin: BraveWallet.CoinType) => {
-    if (hardware) {
-      dispatch(WalletPageActions.removeHardwareAccount({ address, coin }))
-      return
-    }
-    dispatch(WalletPageActions.removeImportedAccount({ address, coin }))
-  }, [])
 
   const onUpdateAccountName = React.useCallback((payload: UpdateAccountNamePayloadType): { success: boolean } => {
     const result = dispatch(WalletPageActions.updateAccountName(payload))
@@ -297,23 +247,9 @@ export const Container = () => {
           >
             <CryptoView
               needsBackup={!isWalletBackedUp}
-              accounts={accounts}
-              onConnectHardwareWallet={onConnectHardwareWallet}
-              onCreateAccount={onCreateAccount}
-              onImportAccount={onImportAccount}
-              onImportFilecoinAccount={onImportFilecoinAccount}
-              isFilecoinEnabled={isFilecoinEnabled}
-              isSolanaEnabled={isSolanaEnabled}
               onUpdateAccountName={onUpdateAccountName}
-              selectedNetwork={selectedNetwork}
-              onRemoveAccount={onRemoveAccount}
               onDoneViewingPrivateKey={onDoneViewingPrivateKey}
               onViewPrivateKey={onViewPrivateKey}
-              onImportAccountFromJson={onImportAccountFromJson}
-              onSetImportError={onSetImportAccountError}
-              hasImportError={importAccountError}
-              onAddHardwareAccounts={onAddHardwareAccounts}
-              getBalance={getBalance}
               defaultWallet={defaultWallet}
               onOpenWalletSettings={onOpenWalletSettings}
               isMetaMaskInstalled={isMetaMaskInstalled}
