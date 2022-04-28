@@ -47,7 +47,6 @@ const displayCount = 10
 
 export const MarketView = () => {
   // State
-  const [coinsMarketData, setCoinsMarketData] = React.useState<BraveWallet.CoinMarket[]>([])
   const [tableHeaders, setTableHeaders] = React.useState(marketDataTableHeaders)
   const [currentFilter, setCurrentFilter] = React.useState<AssetFilterOption>('all')
   const [sortOrder, setSortOrder] = React.useState<SortOrder>('desc')
@@ -68,15 +67,15 @@ export const MarketView = () => {
 
   // Memos
   const visibleCoinMarkets = React.useMemo(() => {
-    let searchResults: BraveWallet.CoinMarket[] = coinsMarketData
+    let searchResults: BraveWallet.CoinMarket[] = allCoins
 
     if (searchTerm !== '') {
-      searchResults = searchCoinMarkets(coinsMarketData, searchTerm)
+      searchResults = searchCoinMarkets(allCoins, searchTerm)
     }
     const filteredCoins = filterCoinMarkets(searchResults, tradableAssets, currentFilter)
     const sorted = sortCoinMarkets(filteredCoins, sortOrder, sortByColumnId)
     return sorted.slice(0, coinsDisplayCount)
-  }, [sortOrder, sortByColumnId, coinsMarketData, coinsDisplayCount, searchTerm, currentFilter])
+  }, [allCoins, sortOrder, sortByColumnId, coinsDisplayCount, searchTerm, currentFilter])
 
   const onSelectFilter = (value: AssetFilterOption) => {
     setCurrentFilter(value)
@@ -114,10 +113,6 @@ export const MarketView = () => {
       }))
     }
   }, [])
-
-  React.useEffect(() => {
-    setCoinsMarketData(allCoins)
-  }, [allCoins])
 
   return (
     <StyledWrapper>
