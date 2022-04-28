@@ -22,6 +22,8 @@ class SearchResultAdService;
 class SearchResultAdServiceFactory : public BrowserContextKeyedServiceFactory {
  public:
   static SearchResultAdService* GetForProfile(Profile* profile);
+  static SearchResultAdService* GetForBrowserContext(
+      content::BrowserContext* context);
 
   static SearchResultAdServiceFactory* GetInstance();
 

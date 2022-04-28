@@ -20,6 +20,13 @@ SearchResultAdService* SearchResultAdServiceFactory::GetForProfile(
 }
 
 // static
+SearchResultAdService* SearchResultAdServiceFactory::GetForBrowserContext(
+    content::BrowserContext* context) {
+  return static_cast<SearchResultAdService*>(
+      GetInstance()->GetServiceForBrowserContext(context, /* create = */ true));
+}
+
+// static
 SearchResultAdServiceFactory* SearchResultAdServiceFactory::GetInstance() {
   return base::Singleton<SearchResultAdServiceFactory>::get();
 }

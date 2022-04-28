@@ -93,6 +93,7 @@ class AdsTabHelper : public content::WebContentsObserver,
   bool is_browser_active_ = true;
   std::vector<GURL> redirect_chain_;
   bool should_process_ = false;
+  absl::optional<int> main_render_frame_id_;
 
   base::WeakPtrFactory<AdsTabHelper> weak_factory_;
   WEB_CONTENTS_USER_DATA_KEY_DECL();

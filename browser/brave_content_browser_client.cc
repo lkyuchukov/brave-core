@@ -15,6 +15,7 @@
 #include "base/strings/strcat.h"
 #include "base/system/sys_info.h"
 #include "base/task/post_task.h"
+#include "brave/browser/brave_ads/search_result_ad/search_result_ad_service_factory.h"
 #include "brave/browser/brave_browser_main_extra_parts.h"
 #include "brave/browser/brave_browser_process.h"
 #include "brave/browser/brave_shields/brave_shields_web_contents_observer.h"
@@ -38,6 +39,8 @@
 #include "brave/common/webui_url_constants.h"
 #include "brave/components/binance/browser/buildflags/buildflags.h"
 #include "brave/components/brave_ads/common/features.h"
+#include "brave/components/brave_ads/content/browser/search_result_ad/search_result_ad_service.h"
+#include "brave/components/brave_ads/content/browser/search_result_ad/search_result_ad_browser_throttle.h"
 #include "brave/components/brave_federated/features.h"
 #include "brave/components/brave_rewards/browser/rewards_protocol_handler.h"
 #include "brave/components/brave_search/browser/brave_search_default_host.h"
@@ -243,6 +246,8 @@ void BindBraveAdsHost(
 #if BUILDFLAG(IS_ANDROID) || BUILDFLAG(ENABLE_EXTENSIONS)
   auto* context = frame_host->GetBrowserContext();
   auto* profile = Profile::FromBrowserContext(context);
+  content::GlobalRenderFrameHostId render_frame_host_id =
+      frame_host->GetGlobalId();
 
   mojo::MakeSelfOwnedReceiver(
 #if BUILDFLAG(IS_ANDROID)
@@ -250,7 +255,7 @@ void BindBraveAdsHost(
 #elif BUILDFLAG(ENABLE_EXTENSIONS)
       std::make_unique<brave_ads::BraveAdsHost>(
 #endif  // BUILDFLAG(IS_ANDROID)
-          profile),
+          profile, render_frame_host_id),
       std::move(receiver));
 #endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(ENABLE_EXTENSIONS)
 }
@@ -500,10 +505,10 @@ void BraveContentBrowserClient::RegisterBrowserInterfaceBindersForFrame(
         base::BindRepeating(&BindBraveSearchDefaultHost));
   }
 
-  if (brave_ads::features::IsRequestAdsEnabledApiEnabled()) {
+  //if (brave_ads::features::IsRequestAdsEnabledApiEnabled()) {
     map->Add<brave_ads::mojom::BraveAdsHost>(
         base::BindRepeating(&BindBraveAdsHost));
-  }
+  //}
 
   if (brave_wallet::IsNativeWalletEnabled() &&
       brave_wallet::IsAllowedForContext(
@@ -706,6 +711,13 @@ BraveContentBrowserClient::CreateURLLoaderThrottles(
       }
     }
   }
+
+  // if (auto search_result_ad_throttle =
+  //         brave_ads::SearchResultAdThrottle::MaybeCreateThrottleFor(
+  //             brave_ads::SearchResultAdServiceFactory::GetForBrowserContext(
+  //                 browser_context))) {
+  //   result.push_back(std::move(search_result_ad_throttle));
+  // }
 
   // Debounce
   if (auto debounce_throttle =

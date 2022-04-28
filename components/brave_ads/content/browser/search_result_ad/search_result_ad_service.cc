@@ -31,7 +31,7 @@ namespace brave_ads {
 
 namespace {
 
-constexpr char kSearchResultAdsListType[] = "Product";
+constexpr char kSearchResultAdsType[] = "Product";
 constexpr char kSearchResultAdType[] = "SearchResultAd";
 
 constexpr char kContextPropertyName[] = "@context";
@@ -153,12 +153,12 @@ bool SetSearchAdProperty(const schema_org::mojom::PropertyPtr& ad_property,
   return false;
 }
 
-absl::optional<SearchResultAdsList> ParseSearchResultAdsListEntityProperties(
+absl::optional<SearchResultAdsMap> ParseSearchResultAdsMapEntityProperties(
     const schema_org::mojom::EntityPtr& entity) {
   DCHECK(entity);
-  DCHECK_EQ(entity->type, kSearchResultAdsListType);
+  DCHECK_EQ(entity->type, kSearchResultAdsType);
 
-  SearchResultAdsList search_result_ads_list;
+  SearchResultAdsMap search_result_ads_list;
 
   for (const auto& property : entity->properties) {
     if (!property || property->name == kContextPropertyName ||
@@ -175,14 +175,14 @@ absl::optional<SearchResultAdsList> ParseSearchResultAdsListEntityProperties(
     if (!property->values->is_entity_values() ||
         property->values->get_entity_values().empty()) {
       LOG(ERROR) << "Search result ad attributes list is empty";
-      return SearchResultAdsList();
+      return SearchResultAdsMap();
     }
 
     for (const auto& ad_entity : property->values->get_entity_values()) {
       if (!ad_entity || ad_entity->type != kSearchResultAdType) {
         LOG(ERROR) << "Wrong search result ad type specified: "
                    << ad_entity->type;
-        return SearchResultAdsList();
+        return SearchResultAdsMap();
       }
 
       if (property->name == kTypePropertyName) {
@@ -202,14 +202,14 @@ absl::optional<SearchResultAdsList> ParseSearchResultAdsListEntityProperties(
         if (it == kSearchResultAdAttributes.end()) {
           LOG(ERROR) << "Wrong search result ad attribute specified: "
                      << ad_property->name;
-          return SearchResultAdsList();
+          return SearchResultAdsMap();
         }
         found_attributes.insert(*it);
 
         if (!SetSearchAdProperty(ad_property, search_result_ad.get())) {
           LOG(ERROR) << "Cannot read search result ad attribute value: "
                      << ad_property->name;
-          return SearchResultAdsList();
+          return SearchResultAdsMap();
         }
       }
 
@@ -224,10 +224,12 @@ absl::optional<SearchResultAdsList> ParseSearchResultAdsListEntityProperties(
         LOG(ERROR) << "Some of search result ad attributes were not specified: "
                    << base::JoinString(absent_attributes, ", ");
 
-        return SearchResultAdsList();
+        return SearchResultAdsMap();
       }
 
-      search_result_ads_list.push_back(std::move(search_result_ad));
+      const std::string creative_instance_id = search_result_ad->creative_instance_id;
+      search_result_ads_list.emplace(creative_instance_id,
+                                     std::move(search_result_ad));
     }
 
     // Creatives has been parsed.
@@ -237,7 +239,7 @@ absl::optional<SearchResultAdsList> ParseSearchResultAdsListEntityProperties(
   return search_result_ads_list;
 }
 
-void LogSearchResultAdsList(const SearchResultAdsList& search_result_ads_list) {
+void LogSearchResultAdsMap(const SearchResultAdsMap& search_result_ads_list) {
   if (!VLOG_IS_ON(1)) {
     return;
   }
@@ -248,7 +250,8 @@ void LogSearchResultAdsList(const SearchResultAdsList& search_result_ads_list) {
   }
 
   VLOG(1) << "Parsed search result ads list:";
-  for (const auto& search_result_ad : search_result_ads_list) {
+  for (const auto& search_result_ad_pair : search_result_ads_list) {
+    const auto& search_result_ad = search_result_ad_pair.second;
     VLOG(1) << "Ad with \"" << kDataPlacementId
             << "\": " << search_result_ad->placement_id;
     VLOG(1) << "  \"" << kDataCreativeInstanceId
@@ -277,27 +280,34 @@ void LogSearchResultAdsList(const SearchResultAdsList& search_result_ads_list) {
   }
 }
 
-SearchResultAdsList ParseWebPageEntities(blink::mojom::WebPagePtr web_page) {
+SearchResultAdsMap ParseWebPageEntities(blink::mojom::WebPagePtr web_page) {
   for (const auto& entity : web_page->entities) {
-    if (entity->type != kSearchResultAdsListType) {
+    if (entity->type != kSearchResultAdsType) {
       continue;
     }
 
-    absl::optional<SearchResultAdsList> search_result_ads_list =
-        ParseSearchResultAdsListEntityProperties(entity);
+    absl::optional<SearchResultAdsMap> search_result_ads_list =
+        ParseSearchResultAdsMapEntityProperties(entity);
 
     if (search_result_ads_list) {
-      LogSearchResultAdsList(*search_result_ads_list);
+      LogSearchResultAdsMap(*search_result_ads_list);
       return std::move(*search_result_ads_list);
     }
   }
 
   VLOG(1) << "No search result ad found.";
 
-  return SearchResultAdsList();
+  return SearchResultAdsMap();
 }
 
 }  // namespace
+
+SearchResultAdService::ViewConfirmationCallbackInfo::ViewConfirmationCallbackInfo() = default;
+SearchResultAdService::ViewConfirmationCallbackInfo::ViewConfirmationCallbackInfo(
+    ViewConfirmationCallbackInfo&& info) = default;
+SearchResultAdService::ViewConfirmationCallbackInfo& SearchResultAdService::ViewConfirmationCallbackInfo::operator=(
+    ViewConfirmationCallbackInfo&& info) = default;
+SearchResultAdService::ViewConfirmationCallbackInfo::~ViewConfirmationCallbackInfo() = default;
 
 SearchResultAdService::SearchResultAdService(AdsService* ads_service)
     : ads_service_(ads_service) {}
@@ -309,6 +319,9 @@ void SearchResultAdService::MaybeRetrieveSearchResultAd(
   DCHECK(ads_service_);
   DCHECK(render_frame_host);
 
+  content::GlobalRenderFrameHostId render_frame_host_id =
+      render_frame_host->GetGlobalId();
+
   if (!ads_service_->IsEnabled() ||
       !base::FeatureList::IsEnabled(
           features::kSupportBraveSearchResultAdConfirmationEvents) ||
@@ -316,6 +329,8 @@ void SearchResultAdService::MaybeRetrieveSearchResultAd(
     if (metadata_request_finished_callback_for_testing_) {
       std::move(metadata_request_finished_callback_for_testing_).Run();
     }
+    search_result_ads_map_[render_frame_host_id] = SearchResultAdsMap();
+    RunAdViewConfirmationPendingCallbacks(render_frame_host_id, false);
     return;
   }
 
@@ -323,12 +338,59 @@ void SearchResultAdService::MaybeRetrieveSearchResultAd(
   render_frame_host->GetRemoteInterfaces()->GetInterface(
       document_metadata.BindNewPipeAndPassReceiver());
   DCHECK(document_metadata.is_bound());
+  document_metadata.reset_on_disconnect();
 
   blink::mojom::DocumentMetadata* raw_document_metadata =
       document_metadata.get();
   raw_document_metadata->GetEntities(
       base::BindOnce(&SearchResultAdService::OnRetrieveSearchResultAdEntities,
-                     weak_factory_.GetWeakPtr(), std::move(document_metadata)));
+                     weak_factory_.GetWeakPtr(), std::move(document_metadata),
+                     render_frame_host_id));
+}
+
+void SearchResultAdService::OnDidFinishNavigation(
+    content::RenderFrameHost* render_frame_host) {
+  Reset(render_frame_host);
+}
+
+void SearchResultAdService::OnWebContentsDestroyed(
+    content::RenderFrameHost* render_frame_host) {
+  Reset(render_frame_host);
+}
+
+void SearchResultAdService::MaybeTriggerSearchResultAdViewConfirmation(
+    const std::string& creative_instance_id,
+    content::GlobalRenderFrameHostId render_frame_host_id,
+    base::OnceCallback<void(bool)> callback) {
+  if (!ads_service_ || !ads_service_->IsEnabled()) {
+    std::move(callback).Run(false);
+    return;
+  }
+  LOG(ERROR) << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+
+  LOG(ERROR) << render_frame_host_id;
+
+  auto ads_map_it = search_result_ads_map_.find(render_frame_host_id);
+  if (ads_map_it == search_result_ads_map_.end()) {
+    ViewConfirmationCallbackInfo callback_info;
+    callback_info.creative_instance_id = creative_instance_id;
+    callback_info.callback = std::move(callback);
+    view_confirmation_pending_callbacks_[render_frame_host_id].push_back(
+        std::move(callback_info));
+    return;
+  }
+  LOG(ERROR) << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+
+  auto ad_it = ads_map_it->second.find(creative_instance_id);
+  if (ad_it == ads_map_it->second.end()) {
+    std::move(callback).Run(false);
+    return;
+  }
+  LOG(ERROR) << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+
+  bool was_triggered = TriggerAdViewConfirmation(creative_instance_id,
+                                                 render_frame_host_id);
+  std::move(callback).Run(was_triggered);
 }
 
 void SearchResultAdService::SetMetadataRequestFinishedCallbackForTesting(
@@ -343,44 +405,86 @@ AdsService* SearchResultAdService::SetAdsServiceForTesting(
   return previous_ads_service;
 }
 
+void SearchResultAdService::Reset(content::RenderFrameHost* render_frame_host) {
+  if (!render_frame_host) {
+    return;
+  }
+
+  content::GlobalRenderFrameHostId render_frame_host_id =
+      render_frame_host->GetGlobalId();
+  LOG(ERROR) << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%";
+  LOG(ERROR) << render_frame_host_id;
+
+  view_confirmation_pending_callbacks_.erase(render_frame_host_id);
+  search_result_ads_map_.erase(render_frame_host_id);
+}
+
 void SearchResultAdService::OnRetrieveSearchResultAdEntities(
     mojo::Remote<blink::mojom::DocumentMetadata> document_metadata,
+    content::GlobalRenderFrameHostId render_frame_host_id,
     blink::mojom::WebPagePtr web_page) {
   if (metadata_request_finished_callback_for_testing_) {
     std::move(metadata_request_finished_callback_for_testing_).Run();
   }
 
   if (!web_page) {
+    search_result_ads_map_[render_frame_host_id] = SearchResultAdsMap();
+    RunAdViewConfirmationPendingCallbacks(render_frame_host_id, false);
     return;
   }
 
-  SearchResultAdsList search_result_ads =
+  LOG(ERROR) << "################################################";
+
+  LOG(ERROR) << render_frame_host_id;
+
+  SearchResultAdsMap search_result_ads =
       ParseWebPageEntities(std::move(web_page));
 
-  std::reverse(search_result_ads.begin(), search_result_ads.end());
-  TriggerSearchResultAdViewedEvents(std::move(search_result_ads));
+  search_result_ads_map_.emplace(render_frame_host_id,
+                                 std::move(search_result_ads));
+
+  RunAdViewConfirmationPendingCallbacks(render_frame_host_id, true);
 }
 
-void SearchResultAdService::TriggerSearchResultAdViewedEvents(
-    SearchResultAdsList search_result_ads) {
+void SearchResultAdService::RunAdViewConfirmationPendingCallbacks(
+    content::GlobalRenderFrameHostId render_frame_host_id,
+    bool ads_fetched) {
+  for (auto& callback_info : view_confirmation_pending_callbacks_[render_frame_host_id]) {
+    bool ad_was_triggered = false;
+    if (ads_fetched) {
+      ad_was_triggered = TriggerAdViewConfirmation(
+          callback_info.creative_instance_id,
+          render_frame_host_id);
+    }
+    std::move(callback_info.callback).Run(ad_was_triggered);
+  }
+  view_confirmation_pending_callbacks_.erase(render_frame_host_id);
+}
+
+bool SearchResultAdService::TriggerAdViewConfirmation(
+    const std::string& creative_instance_id,
+    content::GlobalRenderFrameHostId render_frame_host_id) {
   DCHECK(ads_service_);
-  if (search_result_ads.empty()) {
-    return;
+
+  SearchResultAdsMap& ads_map = search_result_ads_map_[render_frame_host_id];
+  auto it = ads_map.find(creative_instance_id);
+  if (it == ads_map.end()) {
+    return false;
   }
 
-  ads::mojom::SearchResultAdPtr search_result_ad =
-      std::move(search_result_ads.back());
-  search_result_ads.pop_back();
-
+  ads::mojom::SearchResultAdPtr search_result_ad = std::move(it->second);
   ads_service_->TriggerSearchResultAdEvent(
       std::move(search_result_ad), ads::mojom::SearchResultAdEventType::kViewed,
       base::BindOnce(
           &SearchResultAdService::OnTriggerSearchResultAdViewedEvents,
-          weak_factory_.GetWeakPtr(), std::move(search_result_ads)));
+          weak_factory_.GetWeakPtr()));
+
+  ads_map.erase(creative_instance_id);
+
+  return true;
 }
 
 void SearchResultAdService::OnTriggerSearchResultAdViewedEvents(
-    SearchResultAdsList search_result_ads,
     const bool success,
     const std::string& placement_id,
     ads::mojom::SearchResultAdEventType ad_event_type) {
@@ -388,10 +492,7 @@ void SearchResultAdService::OnTriggerSearchResultAdViewedEvents(
   if (!success) {
     VLOG(1) << "Failed to trigger search result ad viewed event for "
             << placement_id;
-    return;
   }
-
-  TriggerSearchResultAdViewedEvents(std::move(search_result_ads));
 }
 
 }  // namespace brave_ads

@@ -22,6 +22,9 @@
 #include "extensions/browser/extension_system.h"
 #include "extensions/common/constants.h"
 
+#include "brave/browser/brave_ads/search_result_ad/search_result_ad_service_factory.h"
+#include "brave/components/brave_ads/content/browser/search_result_ad/search_result_ad_service.h"
+
 namespace brave_ads {
 
 namespace {
@@ -30,11 +33,32 @@ constexpr char kAdsEnableRelativeUrl[] = "request_ads_enabled_panel.html";
 
 }  // namespace
 
-BraveAdsHost::BraveAdsHost(Profile* profile) : profile_(profile) {
+BraveAdsHost::BraveAdsHost(
+      Profile* profile,
+      content::GlobalRenderFrameHostId render_frame_host_id)
+    : profile_(profile),
+      render_frame_host_id_(render_frame_host_id) {
   DCHECK(profile_);
+  DCHECK(render_frame_host_id_);
 }
 
 BraveAdsHost::~BraveAdsHost() {}
+
+void BraveAdsHost::MaybeTriggerAdViewConfirmation(const std::string& creative_instance_id,
+                                 MaybeTriggerAdViewConfirmationCallback callback) {
+  DCHECK(callback);
+
+  SearchResultAdService* search_result_ad_service =
+      SearchResultAdServiceFactory::GetForProfile(profile_);
+
+  if (!search_result_ad_service) {
+    std::move(callback).Run(false);
+    return;
+  }
+
+  search_result_ad_service->MaybeTriggerSearchResultAdViewConfirmation(
+      creative_instance_id, render_frame_host_id_, std::move(callback));
+}
 
 void BraveAdsHost::RequestAdsEnabled(RequestAdsEnabledCallback callback) {
   DCHECK(callback);
