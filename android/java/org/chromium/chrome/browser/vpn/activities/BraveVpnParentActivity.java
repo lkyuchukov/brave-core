@@ -77,6 +77,8 @@ public abstract class BraveVpnParentActivity
     }
 
     protected void verifySubscription() {
+        BraveVpnUtils.showProgressDialog(
+                BraveVpnParentActivity.this, getResources().getString(R.string.vpn_connect_text));
         mBraveVpnPrefModel = new BraveVpnPrefModel();
         List<Purchase> purchases = InAppPurchaseWrapper.getInstance().queryPurchases();
         if (purchases != null && purchases.size() == 1) {

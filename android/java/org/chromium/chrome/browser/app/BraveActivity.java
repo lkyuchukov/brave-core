@@ -586,6 +586,9 @@ public abstract class BraveActivity<C extends ChromeActivityComponent> extends C
     @Override
     public void onVerifyCredentials(String jsonVerifyCredentials, boolean isSuccess) {
         if (!isSuccess) {
+            Toast.makeText(BraveActivity.this, R.string.profile_credentials_have_changed,
+                         Toast.LENGTH_SHORT)
+                    .show();
             if (BraveVpnProfileUtils.getInstance().isBraveVPNConnected(BraveActivity.this)) {
                 BraveVpnProfileUtils.getInstance().stopVpn(BraveActivity.this);
             }

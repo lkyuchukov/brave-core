@@ -2998,6 +2998,9 @@ If you don't accept this request, VPN will not reconnect and your internet conne
     <message name="IDS_BRAVE_WALLET_ALLOW_ADD_NETWORK_HEADING" desc="Add network panel title">
       Allow this site to add a network?
     </message>
+    <message name="IDS_PROFILE_CREDENTIALS_HAVE_CHANGED" desc="Profile credentials failed toast text">
+      Profile credentials have changed.\nGetting the new One...
+    </message>
   </messages>
   </release>
 </grit>
