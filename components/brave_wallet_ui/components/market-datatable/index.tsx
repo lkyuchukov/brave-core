@@ -137,11 +137,12 @@ export const MarketDataTable = (props: Props) => {
   }, [onScreen, moreDataAvailable])
 
   const rows: Row[] = React.useMemo(() => {
-    const cells = coinMarketData.map((coinMarketItem: BraveWallet.CoinMarket) => {
-      return renderCells(coinMarketItem)
+    return coinMarketData.map((coinMarketItem: BraveWallet.CoinMarket, index: number) => {
+      return {
+        id: `coin-row-${index}`,
+        content: renderCells(coinMarketItem)
+      }
     })
-
-    return cells.map(cell => { return { content: cell } })
   }, [coinMarketData])
 
   return (

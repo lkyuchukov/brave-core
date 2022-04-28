@@ -33,6 +33,7 @@ export interface Cell {
 }
 
 export interface Row {
+  id: string
   customStyle?: CSSProperties
   content: Cell[]
 }
@@ -68,6 +69,7 @@ export const Table = (props: Props) => {
                 {
                   headers.map((header) =>
                     <StyledTH
+                      id={`${header.id}-th`}
                       key={`${header.id}-th`}
                       style={header.customStyle}
                       sortable={header.sortable}
@@ -93,6 +95,7 @@ export const Table = (props: Props) => {
               {
                 rows.map((row: Row, i: number) =>
                   <tr
+                    id={row.id}
                     key={i}
                     style={row.customStyle}
                   >
