@@ -7,7 +7,7 @@ import { storiesOf } from '@storybook/react'
 import { withKnobs, object } from '@storybook/addon-knobs'
 
 // Components
-import Table, { Header, Row } from '../components/shared/datatable'
+import { Table, Header, Row } from '../components/shared/datatable'
 
 storiesOf('Wallet/Desktop/Components', module)
   .addDecorator(withKnobs)
