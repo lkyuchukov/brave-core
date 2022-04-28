@@ -18,6 +18,7 @@ storiesOf('Wallet/Desktop/Components', module)
 
     const rows: Row[] = [
       {
+        id: 'row-1',
         content: [
           {
             content: 'Baker'
@@ -33,6 +34,7 @@ storiesOf('Wallet/Desktop/Components', module)
         ]
       },
       {
+        id: 'row-2',
         content: [
           {
             content: 'duckduckgo.com'
