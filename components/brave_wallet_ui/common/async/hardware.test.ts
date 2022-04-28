@@ -126,7 +126,7 @@ const signTransactionWithLedger = (vrs?: SignatureVRS, signatureResponse?: boole
   const signed = signatureResponse ? { status: signatureResponse } : undefined
   const apiProxy = getMockedProxyServices(txInfo.id, { nonce: '0x1' }, messageToSign,
     signed)
-  return signLedgerTransaction(apiProxy as unknown as WalletApiProxy, expectedPath, txInfo, mockedKeyring as unknown as LedgerBridgeKeyring)
+  return signLedgerTransaction(apiProxy as unknown as WalletApiProxy, expectedPath, txInfo, BraveWallet.CoinType.ETH, mockedKeyring as unknown as LedgerBridgeKeyring)
 }
 
 const hardwareTransactionErrorResponse = (errorId: string, code: string = ''): SignHardwareTransactionType => {

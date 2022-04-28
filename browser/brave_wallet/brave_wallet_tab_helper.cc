@@ -49,6 +49,7 @@ void BraveWalletTabHelper::ShowBubble() {
   wallet_bubble_manager_delegate_->ShowBubble();
   if (show_bubble_callback_for_testing_)
     std::move(show_bubble_callback_for_testing_).Run();
+  SetCloseOnDeactivate(false);
 }
 
 void BraveWalletTabHelper::ShowApproveWalletBubble() {
@@ -60,6 +61,7 @@ void BraveWalletTabHelper::ShowApproveWalletBubble() {
   wallet_bubble_manager_delegate_ = WalletBubbleManagerDelegate::Create(
       &GetWebContents(), GetApproveBubbleURL());
   wallet_bubble_manager_delegate_->ShowBubble();
+  SetCloseOnDeactivate(false);
 }
 
 void BraveWalletTabHelper::CloseBubble() {

@@ -33,19 +33,19 @@ import {
 } from '../../common/async/lib'
 import {
   signTrezorTransaction,
-  signLedgerTransaction,
+  signLedgerEthereumTransaction,
   signMessageWithHardwareKeyring,
   cancelHardwareOperation,
   dialogErrorFromLedgerErrorCode,
-  dialogErrorFromTrezorErrorCode
+  dialogErrorFromTrezorErrorCode,
+  signLedgerFilecoinTransaction
 } from '../../common/async/hardware'
 
 import { Store } from '../../common/async/types'
 import { getLocale } from '../../../common/locale'
-
 import getWalletPanelApiProxy from '../wallet_panel_api_proxy'
-import { HardwareVendor } from '../../common/api/hardware_keyrings'
 import { isRemoteImageURL } from '../../utils/string-utils'
+import { HardwareVendor } from 'components/brave_wallet_ui/common/api/hardware_keyrings'
 
 const handler = new AsyncActionHandler()
 
@@ -252,16 +252,18 @@ handler.on(PanelActions.cancelConnectHardwareWallet.getType(), async (store: Sto
 })
 
 handler.on(PanelActions.approveHardwareTransaction.getType(), async (store: Store, txInfo: BraveWallet.TransactionInfo) => {
-  const found = await findHardwareAccountInfo(txInfo.fromAddress)
-  if (!found || !found.hardware) {
+  const account = await findHardwareAccountInfo(txInfo.fromAddress)
+  if (!account || !account.hardware) {
     return
   }
-  const hardwareAccount: HardwareInfo = found.hardware
+  const hardwareAccount: HardwareInfo = account.hardware
   await navigateToConnectHardwareWallet(store)
   const apiProxy = getWalletPanelApiProxy()
   await store.dispatch(PanelActions.navigateToMain())
   if (hardwareAccount.vendor === BraveWallet.LEDGER_HARDWARE_VENDOR) {
-    const { success, error, code } = await signLedgerTransaction(apiProxy, hardwareAccount.path, txInfo)
+    const { success, error, code } = (account.coin === BraveWallet.CoinType.ETH) ?
+       await signLedgerEthereumTransaction(apiProxy, hardwareAccount.path, txInfo, account.coin) :
+       await signLedgerFilecoinTransaction(apiProxy, hardwareAccount.path, txInfo, account.coin)
     if (success) {
       refreshTransactionHistory(txInfo.fromAddress)
       return
