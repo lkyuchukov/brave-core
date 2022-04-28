@@ -243,6 +243,15 @@ Or change later at <ph name="SETTINGS_EXTENIONS_LINK">$2<ex>brave://settings/ext
       </message>
 
       <!-- Autoplay -->
+      <message name="IDS_SETTINGS_SITE_SETTINGS_AUTOPLAY" desc="Label for autoplay site settings.">
+        Autoplay
+      </message>
+      <message name="IDS_SETTINGS_SITE_SETTINGS_AUTOPLAY_ALLOW" desc="Label for autoplay site settings.">
+        Allow sites to autoplay videos
+      </message>
+      <message name="IDS_SETTINGS_SITE_SETTINGS_AUTOPLAY_BLOCK" desc="Label for autoplay site settings.">
+        Block sites from autoplaying videos
+      </message>
       <message name="IDS_BLOCKED_AUTOPLAY_TITLE" desc="Tooltip and bubble info header text when a page is not allowed to autoplay media.">
         Autoplay was blocked on this page
       </message>
